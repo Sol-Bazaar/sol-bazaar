@@ -78,7 +78,7 @@ export function ConnectWallet() {
         <button
           type="button"
           onClick={() => setMenu((v) => !v)}
-          className="btn btn-ghost h-9 gap-2 !px-2.5 text-[13px]"
+          className="btn btn-ghost h-10 sm:h-9 gap-2 !px-2.5 text-[13px]"
           aria-haspopup="menu"
           aria-expanded={menu}
           aria-label={`Wallet ${shortAddress(session.address, 4, 4)}. Account menu`}
@@ -152,14 +152,14 @@ export function ConnectWallet() {
           type="button"
           onClick={() => void signIn()}
           disabled={signingIn}
-          className="btn btn-primary h-9 !px-2.5 text-[13px]"
+          className="btn btn-primary h-10 sm:h-9 !px-2.5 text-[13px]"
         >
           {signingIn ? 'Check wallet…' : 'Sign in'}
         </button>
         <button
           type="button"
           onClick={() => void disconnect()}
-          className="btn btn-ghost h-9 !px-2"
+          className="btn btn-ghost h-10 sm:h-9 !px-2"
           aria-label="Disconnect wallet"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
@@ -176,7 +176,7 @@ export function ConnectWallet() {
       <button
         type="button"
         onClick={() => setMenu((v) => !v)}
-        className="btn btn-ghost h-9 gap-2 !px-2.5 text-[13px] font-semibold"
+        className="btn btn-ghost h-10 sm:h-9 gap-2 !px-2.5 text-[13px] font-semibold"
         aria-haspopup="menu"
         aria-expanded={menu}
       >

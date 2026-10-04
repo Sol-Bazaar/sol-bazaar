@@ -60,12 +60,14 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       <SiteHeader />
 
       <main className="mx-auto max-w-[1600px] px-4 py-10 sm:px-6 lg:px-8">
-        <nav aria-label="Breadcrumb" className="mb-5 flex items-center gap-1.5 text-[12.5px] text-[var(--muted)]">
-          <Link href="/" className="hover:text-[var(--text)]">
+        {/* `py-2` makes each crumb a usable tap target on a phone — the text
+            itself is only 19px tall, which is hard to hit. */}
+        <nav aria-label="Breadcrumb" className="mb-5 flex items-center gap-x-1.5 text-[12.5px] text-[var(--muted)]">
+          <Link href="/" className="-mx-1 px-1 py-2 hover:text-[var(--text)]">
             Home
           </Link>
           <span aria-hidden>/</span>
-          <span className="text-[var(--text)]">{heading}</span>
+          <span className="px-1 py-2 text-[var(--text)]">{heading}</span>
         </nav>
 
         <div className="mx-auto max-w-2xl">
@@ -78,11 +80,11 @@ export default async function ProductsPage({ searchParams }: PageProps) {
               <Link
                 key={c.id}
                 href={`/products?category=${c.slug}`}
-                className="badge gap-1.5 py-1.5 text-[12px] font-semibold transition-colors hover:border-[var(--accent)]"
+                className="badge gap-1.5 py-2.5 text-[12px] font-semibold transition-colors hover:border-[var(--accent)] sm:py-1.5"
               >
                 <span aria-hidden>{c.icon ?? '🎁'}</span>
                 {c.name}
-                <span className="font-mono text-[10px] font-bold text-[var(--muted)]">{c.productCount}</span>
+                <span className="font-mono text-[11px] font-bold text-[var(--muted)]">{c.productCount}</span>
               </Link>
             ))}
           </div>

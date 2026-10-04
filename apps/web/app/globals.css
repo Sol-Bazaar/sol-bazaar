@@ -135,6 +135,8 @@ h1, h2, h3, h4, h5, h6 {
    */
   .t-label {
     font-family: var(--font-mono);
+    /* 0.6875rem = 11px. Readable on a phone without pinching, and still small
+     * enough to read as a technical annotation beside 13-14px body text. */
     font-size: 0.6875rem;
     line-height: 1.2;
     font-weight: 400;
@@ -289,6 +291,9 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
     gap: 0.3125rem;
     font-family: var(--font-mono);
+    /* 10px from `sm` up (see the mobile override below). Badges carry stock
+     * state, ratings and brand names, so they are content — not decoration —
+     * and the type scale is the only thing keeping them legible. */
     font-size: 0.625rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -296,6 +301,22 @@ h1, h2, h3, h4, h5, h6 {
     border: 1px solid var(--line);
     background: var(--elevated);
     color: var(--muted);
+  }
+
+  /*
+   * Phones: 11px badges.
+   *
+   * 10px monospace reads as an intentional annotation on a desktop, where it sits
+   * beside 13-14px body copy. On a phone the same 10px is below what most people
+   * can read without pinching, and these badges are not decoration — "In stock",
+   * "Instant delivery" and the star rating are exactly the information a buyer
+   * scans the card for. Bumping the one base class fixes every call site at once,
+   * instead of patching each badge individually and missing some.
+   */
+  @media (max-width: 639px) {
+    .badge {
+      font-size: 0.6875rem;
+    }
   }
 
   .skeleton {

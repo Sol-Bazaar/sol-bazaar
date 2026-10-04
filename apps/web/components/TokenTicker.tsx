@@ -35,7 +35,7 @@ export function TokenTicker() {
 
   return (
     <span
-      className="hidden h-9 items-center gap-1.5 rounded-none border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_70%,transparent)] px-2.5 text-[12px] font-semibold sm:inline-flex"
+      className="hidden h-10 items-center gap-1.5 rounded-none border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_70%,transparent)] px-2.5 text-[12px] font-semibold sm:inline-flex sm:h-9"
       title="Indicative SOL price. The exact amount is fixed when you check out."
     >
       <span className="relative flex h-1.5 w-1.5">

@@ -81,7 +81,10 @@ export function DeliveryTimeline({
               </div>
               <div className="min-w-0 pb-1">
                 <div className="text-[11.5px] font-bold leading-tight">{s.label}</div>
-                <div className="mt-0.5 font-mono text-[10px] text-[var(--muted)]">
+                {/* 11px on phones: this line is the status the buyer is watching
+                    for progress, so it must be readable at arm's length. 10px
+                    from `sm` up keeps the timeline's visual rhythm. */}
+                <div className="mt-0.5 font-mono text-[11px] text-[var(--muted)] sm:text-[10px]">
                   {s.at ? timeOf(s.at) : active ? 'working…' : 'pending'}
                 </div>
               </div>

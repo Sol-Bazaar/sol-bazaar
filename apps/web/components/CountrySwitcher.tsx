@@ -57,7 +57,7 @@ export function CountrySwitcher({ initial }: { initial?: string }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="btn btn-ghost h-9 !px-2.5 text-[13px]"
+        className="btn btn-ghost h-10 sm:h-9 !px-2.5 text-[13px]"
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={`Shopping region: ${countryLabel(current)}. Change`}

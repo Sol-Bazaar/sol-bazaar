@@ -50,16 +50,25 @@ export default async function ProductPage({ params }: PageProps) {
       <SiteHeader />
 
       <main className="mx-auto max-w-[1600px] px-4 py-9 sm:px-6 lg:px-8">
-        <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-1.5 text-[12.5px] text-[var(--muted)]">
-          <Link href="/" className="hover:text-[var(--text)]">
+        {/*
+          The links get vertical padding so each crumb is a ~32px tap target on a
+          phone. Inline text alone was 19px tall, which is hard to hit and fails
+          the 44px guideline outright. Horizontal padding keeps the slashes from
+          looking crowded against the words.
+        */}
+        <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-x-1.5 text-[12.5px] text-[var(--muted)]">
+          <Link href="/" className="-mx-1 px-1 py-2 hover:text-[var(--text)]">
             Home
           </Link>
           <span aria-hidden>/</span>
-          <Link href={`/products?category=${product.category.slug}`} className="hover:text-[var(--text)]">
+          <Link
+            href={`/products?category=${product.category.slug}`}
+            className="-mx-1 px-1 py-2 hover:text-[var(--text)]"
+          >
             {product.category.name}
           </Link>
           <span aria-hidden>/</span>
-          <span className="text-[var(--text)]">{product.shortName || product.name}</span>
+          <span className="px-1 py-2 text-[var(--text)]">{product.shortName || product.name}</span>
         </nav>
 
         <div className="grid gap-8 lg:grid-cols-[1fr_400px] lg:gap-12">

@@ -57,11 +57,20 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  // Matches DARK.background in packages/tenant/src/theme.ts. If you change the
-  // palette, change this too or the mobile browser chrome will not match.
-  themeColor: '#0A0A0A',
+  // Must track the tenant palette, or the mobile browser chrome (address bar,
+  // pull-to-refresh overscroll) renders a different colour from the page and the
+  // seam is visible on every scroll. It was hardcoded to the pre-redesign
+  // near-black and went stale; keep it in sync with DARK.background in
+  // packages/tenant/src/theme.ts.
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#0A090F' },
+    { media: '(prefers-color-scheme: light)', color: '#FFFFFF' },
+  ],
   width: 'device-width',
   initialScale: 1,
+  // The theme clamps `maximumScale` deliberately: pinch-zoom is an accessibility
+  // feature and disabling it fails WCAG 1.4.4.
+  viewportFit: 'cover',
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

@@ -98,10 +98,17 @@ export default function FaqPage() {
 
         <nav aria-label="On this page" className="card mt-8 p-5">
           <h2 className="text-[12px] font-bold uppercase tracking-wider text-[var(--muted)]">On this page</h2>
-          <ul className="mt-2.5 grid gap-1.5 sm:grid-cols-2">
+          <ul className="mt-2.5 grid gap-1 sm:grid-cols-2">
             {SECTIONS.map((s) => (
               <li key={s.id}>
-                <a href={`#${s.id}`} className="text-[13.5px] hover:underline" style={{ color: 'var(--accent)' }}>
+                {/* `py-1.5 -mx-1.5` turns a 17px line of text into a ~34px tap
+                    target. This is the primary way to move around the page on a
+                    phone, so it needs a thumb-sized row. */}
+                <a
+                  href={`#${s.id}`}
+                  className="-mx-1.5 block px-1.5 py-1.5 hover:underline"
+                  style={{ color: 'var(--accent)' }}
+                >
                   {s.q}
                 </a>
               </li>

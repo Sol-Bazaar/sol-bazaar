@@ -142,7 +142,7 @@ export function BuyPanel({
               max={50}
               value={qty}
               onChange={(e) => setQty(Math.max(1, Math.min(50, Number(e.target.value) || 1)))}
-              className="input no-spinner h-9 w-14 text-center font-mono text-[14px] font-bold tabular-nums"
+              className="input no-spinner h-10 w-16 text-center font-mono text-[14px] font-bold tabular-nums sm:h-9 sm:w-14"
               aria-label="Quantity"
             />
             <StepperBtn onClick={() => setQty((q) => Math.min(50, q + 1))} disabled={qty >= 50} aria-label="Increase quantity">
@@ -233,7 +233,7 @@ function StepperBtn({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="grid h-9 w-9 place-items-center rounded-none border border-[var(--line)] text-[17px] font-bold transition-colors hover:border-[var(--accent)] disabled:opacity-35"
+      className="grid h-10 w-10 place-items-center rounded-none border border-[var(--line)] text-[17px] font-bold transition-colors hover:border-[var(--accent)] disabled:opacity-35 sm:h-9 sm:w-9"
       {...rest}
     >
       {children}

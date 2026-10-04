@@ -23,3 +23,8 @@ apps/web/public/brand/_preview-*.png
 
 # One-off live-checkout helper; keys live outside the repo
 _livetest.mjs
+
+# Local mobile-layout probes (see the measurement approach in docs/SETUP.md).
+# These are throwaway harnesses, never part of the app.
+_mobile-probe.html
+_*-probe.html

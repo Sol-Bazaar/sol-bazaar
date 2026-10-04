@@ -59,7 +59,15 @@ export async function SiteFooter() {
           <p>
             © {new Date().getFullYear()} {brand.legalName || brand.name}. All rights reserved.
           </p>
-          <p className="flex items-center gap-2">
+          {/*
+            `flex-wrap` is load-bearing, not decoration. Three inline items plus
+            two separators cannot fit a 320px viewport on one line, and a
+            single-line flex row refuses to shrink below its content width — so
+            this paragraph alone was pushing the whole document 21px wide
+            horizontally at that size (5px at 360px). Confirmed by hiding
+            subtrees one at a time until the overflow disappeared.
+          */}
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="inline-flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-[var(--ok)]" aria-hidden />
               Settled on Solana
@@ -92,7 +100,10 @@ function FooterCol({ title, links }: { title: string; links: { href: string; lab
       <ul className="mt-4 space-y-2.5">
         {links.map((l) => (
           <li key={l.href}>
-            <Link href={l.href} className="text-[14px] text-[var(--muted)] transition-colors hover:text-[var(--text)]">
+            {/* `block py-1.5` lifts each link from an 18px line to a ~34px tap
+                row. Footer links are a real navigation path on a phone, not
+                fine print. */}
+            <Link href={l.href} className="-mx-1 block px-1 py-1.5 text-[14px] text-[var(--muted)] transition-colors hover:text-[var(--text)]">
               {l.label}
             </Link>
           </li>
