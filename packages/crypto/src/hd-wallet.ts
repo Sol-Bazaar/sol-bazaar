@@ -219,7 +219,38 @@ export class SolanaHdWallet {
     // (signing is intentionally left to the caller; see docs/OPERATIONS.md)
   }
 
-  /** Aggregate hot wallet, slot 0 of a *separate* seed in production. */
+  /**
+   * The wallet that signs fee sweeps.
+   *
+   * ── Why this can be a different seed ─────────────────────────────────────────
+   * Fee sweeping is the only part of the system that *spends* from the operator
+   * seed, and it is also the part most exposed: it signs transactions, runs on a
+   * timer, and sends to a collector address held in config. Deposit derivation
+   * never signs anything — it only produces addresses for customers to pay.
+   *
+   * Splitting the two means compromising the sweeper (a bad dependency, a leaked
+   * config, a compromised host) yields an attacker who can move *your revenue*
+   * but who cannot derive a single customer deposit address — so unreconciled
+   * inbound payments stay exactly where they are.
+   *
+   * ── Fallback ────────────────────────────────────────────────────────────────
+   * With no `WALLET_SWEEP_SEED`, this returns the operator wallet, so existing
+   * deployments keep working unchanged and the split only takes effect once a
+   * second seed is configured. Deliberately not a hard failure: refusing to boot
+   * because an optional hardening step is absent is worse than the risk it
+   * removes.
+   */
+  static sweepFromEnv(env = process.env): SolanaHdWallet {
+    const seed = env.WALLET_SWEEP_SEED?.trim();
+    if (!seed) return SolanaHdWallet.fromEnv(env);
+    return new SolanaHdWallet({ seed });
+  }
+
+  /** True when sweeping signs with its own seed rather than the operator's. */
+  static sweepIsSplit(env = process.env): boolean {
+    return Boolean(env.WALLET_SWEEP_SEED?.trim());
+  }
+
   isValidAddress(addr: string): boolean {
     try {
       const k = new PublicKey(addr);

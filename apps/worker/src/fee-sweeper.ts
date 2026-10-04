@@ -14,10 +14,17 @@
  *      (`sweepId = null`) so the next attempt retries the same money. Nothing is
  *      ever lost and nothing is ever double-sent.
  *
- * ── Why a dedicated HD slot ────────────────────────────────────────────────
+ * ── Why a dedicated HD slot, on its own seed ────────────────────────────────
  * Deposits use monotonically allocated slots starting at 0. Sweeping uses a
  * slot far above that range (`WALLET_SWEEP_INDEX_SOL`), so a sweeping transfer
  * can never be mistaken for a customer deposit by the payment watcher.
+ *
+ * The sweep keys can additionally live on their own seed (`WALLET_SWEEP_SEED`).
+ * Separating the index stops a sweep *transaction* looking like a deposit;
+ * separating the seed stops a compromised sweeper from being able to *derive*
+ * deposits at all. Only sweeping signs anything, so this is the whole signing
+ * surface of the platform, and it can be isolated from the derivation surface.
+ * Generate the second seed with `npm run wallet:sweep-new`.
  *
  * ── Token handling ─────────────────────────────────────────────────────────
  * Fees accrue in whatever token the customer paid with, and are swept in that
@@ -96,7 +103,14 @@ export async function sweepPlatformFees(opts: { force?: boolean } = {}): Promise
     return [];
   }
 
-  const wallet = SolanaHdWallet.fromEnv();
+  const wallet = SolanaHdWallet.sweepFromEnv();
+  if (!SolanaHdWallet.sweepIsSplit()) {
+    // Not fatal, but it is the difference between "a compromised sweeper can move
+    // your revenue" and "...can also derive every customer deposit address".
+    log.warn('sweep_seed_not_split', {
+      action: 'fee sweeping signs with the operator seed; set WALLET_SWEEP_SEED to isolate it',
+    });
+  }
   const rpc = RpcPool.fromEnv();
   const connection = rpc.current;
   const isDevnet = process.env.SOLANA_CLUSTER !== 'mainnet-beta';

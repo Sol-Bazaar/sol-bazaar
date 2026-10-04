@@ -16,6 +16,8 @@ import { PublicKey } from '@solana/web3.js';
 function main() {
   const wallet = SolanaHdWallet.fromEnv();
   const isDevnet = process.env.SOLANA_CLUSTER !== 'mainnet-beta';
+  const split = SolanaHdWallet.sweepIsSplit();
+  const sweep = SolanaHdWallet.sweepFromEnv();
 
   console.log(`\nOperator wallet (${process.env.SOLANA_CLUSTER ?? 'devnet'})`);
   console.log('─'.repeat(66));
@@ -25,6 +27,19 @@ function main() {
     `    fee sweep slots: ${process.env.WALLET_SWEEP_INDEX_SOL ?? 999000} (SOL), ` +
       `${process.env.WALLET_SWEEP_INDEX_SPL ?? 999001} (SPL)`,
   );
+
+  // The split is the thing to check after a deploy: if it silently fell back,
+  // a compromised sweeper can derive every customer deposit address again.
+  console.log(
+    split
+      ? `\n  ✓ fee sweeping uses its own seed — addresses below are NOT derivable from the operator seed`
+      : '\n  ! fee sweeping shares the operator seed. Set WALLET_SWEEP_SEED (npm run wallet:sweep-new) to isolate it.',
+  );
+  if (split) {
+    console.log(`    sweep slot ${process.env.WALLET_SWEEP_INDEX_SOL ?? 999000} (SOL): ${sweep.accountAt(Number(process.env.WALLET_SWEEP_INDEX_SOL ?? 999000)).address}`);
+    console.log(`    sweep slot ${process.env.WALLET_SWEEP_INDEX_SPL ?? 999001} (SPL): ${sweep.accountAt(Number(process.env.WALLET_SWEEP_INDEX_SPL ?? 999001)).address}`);
+    console.log(`    sweep slot 0 (reference)  : ${sweep.accountAt(0).address}`);
+  }
 
   console.log('\n  Deposit slots 0-9:');
   for (let i = 0; i < 10; i++) {
