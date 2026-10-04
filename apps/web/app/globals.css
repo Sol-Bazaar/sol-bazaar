@@ -1,0 +1,314 @@
+@import 'tailwindcss';
+
+/*
+ * Sol Bazaar design system
+ * ========================
+ *
+ * A technical-drawing aesthetic: near-black ground, a visible hairline grid,
+ * square corners, crop-mark brackets on interactive cells, and monospaced
+ * micro-labels with bracketed counts.
+ *
+ * Why a grid rather than cards floating on black: a gift-card grid is dozens of
+ * third-party logos. Giving each one its own rounded, filled card competes with
+ * the logos themselves. Laying them on a shared hairline grid instead reads as
+ * one surface — the chrome recedes and the artwork carries the colour.
+ *
+ * The one exception to "colourless chrome" is the brand mark and the `--accent-2`
+ * gradient, which the logo itself supplies. That is enough; nothing else is
+ * allowed to be colourful.
+ *
+ * Every colour is a CSS custom property so a white-label tenant can be injected
+ * server-side as inline style on <html> — a rebranded storefront renders
+ * correctly in the first HTML byte.
+ */
+@theme {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-elevated: var(--elevated);
+  --color-line: var(--line);
+  --color-grid: var(--grid);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+  --color-money: var(--money);
+
+  /* Square is the rule. Pills are opt-in and used only for status dots. */
+  --radius-card: 0px;
+  --radius-pill: 999px;
+
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: var(--font-roboto-mono), ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --animate-shimmer: shimmer 2.4s linear infinite;
+  --animate-pulse-ring: pulse-ring 2.2s ease-out infinite;
+  --animate-scan: scan 2.6s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); }
+  70% { box-shadow: 0 0 0 14px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(400%); }
+}
+
+/* ── Base ───────────────────────────────────────────────────────────────── */
+* {
+  border-color: var(--line);
+  min-width: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  background-color: var(--bg);
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/*
+ * Headings are medium-weight with tight tracking. Weight 800 reads as loud;
+ * medium reads as confident, and it lets the logos stay the loudest thing.
+ */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Type scale ─────────────────────────────────────────────────────────── */
+@layer components {
+  .t-display  { font-size: clamp(2.5rem, 6vw, 4rem);      line-height: 0.98; letter-spacing: -0.04em; font-weight: 500; }
+  .t-h1       { font-size: clamp(1.875rem, 4.2vw, 2.75rem); line-height: 1.02; letter-spacing: -0.035em; font-weight: 500; }
+  .t-h2       { font-size: clamp(1.375rem, 2.6vw, 1.75rem); line-height: 1.08; letter-spacing: -0.028em; font-weight: 500; }
+  .t-h3       { font-size: 1.125rem; line-height: 1.25; letter-spacing: -0.02em; font-weight: 500; }
+  .t-h4       { font-size: 0.9375rem; line-height: 1.35; letter-spacing: -0.015em; font-weight: 500; }
+  .t-body     { font-size: 0.9375rem; line-height: 1.6; }
+  .t-small    { font-size: 0.8125rem; line-height: 1.5; }
+
+  /*
+   * The signature label: monospaced, uppercase, wide tracking, faint.
+   *
+   * Counts go in brackets — `GAMING [10]` — which is the single cheapest way to
+   * make a utilitarian label feel like part of a technical drawing rather than a
+   * marketing site.
+   */
+  .t-label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1.2;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .t-num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--grid);
+    margin-bottom: 1.25rem;
+  }
+
+  /*
+   * The grid field.
+   *
+   * Two repeating gradients rather than a table of bordered divs: one paint,
+   * no extra DOM, and it stays crisp at any column count because the cell size
+   * is a fixed token. Cells are transparent so the card art on top reads clearly.
+   */
+  .grid-field {
+    background-image:
+      repeating-linear-gradient(to right, var(--grid) 0 1px, transparent 1px var(--cell)),
+      repeating-linear-gradient(to bottom, var(--grid) 0 1px, transparent 1px var(--cell));
+    background-position: -1px -1px;
+  }
+
+  /*
+   * Crop marks. Four corner brackets drawn with two pseudo-elements, each using
+   * two borders — no extra nodes, and they scale with the element.
+   *
+   * Only meaningful on a rectangular box, so the element must be positioned.
+   */
+  .brackets { position: relative; }
+  .brackets::before,
+  .brackets::after {
+    content: '';
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+  .brackets::before {
+    top: -1px; left: -1px;
+    border-top: 1px solid var(--accent);
+    border-left: 1px solid var(--accent);
+  }
+  .brackets::after {
+    bottom: -1px; right: -1px;
+    border-bottom: 1px solid var(--accent);
+    border-right: 1px solid var(--accent);
+  }
+  /* Only reveal on interaction — always-on brackets turn the page into a wireframe. */
+  .brackets-hover::before,
+  .brackets-hover::after { opacity: 0; }
+  .brackets-hover:hover::before,
+  .brackets-hover:hover::after,
+  .brackets-hover:focus-visible::before,
+  .brackets-hover:focus-visible::after { opacity: 1; }
+
+  /* Static brackets, for cells that should always read as a data cell. */
+  .brackets-always::before,
+  .brackets-always::after { opacity: 0.55; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 0;
+  }
+
+  /*
+   * Notched buttons.
+   *
+   * A 45° clip on one corner reads as a machined/technical control and is the
+   * clearest signal that this UI is deliberate rather than unstyled. The clip
+   * means the focus ring has to be drawn manually — a clipped element clips its
+   * own outline too, so hover/focus changes the border colour instead.
+   */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.6875rem 1.125rem;
+    transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+    white-space: nowrap;
+    cursor: pointer;
+    border: 1px solid var(--line);
+    clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+  }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--accent-2);
+    border-color: var(--accent-2);
+    color: var(--bg);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border-color: var(--grid);
+    color: var(--text);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .btn-lg { padding: 0.875rem 1.5rem; font-size: 0.8125rem; }
+  .btn-sm { padding: 0.375rem 0.6875rem; font-size: 0.6875rem; }
+
+  .input {
+    width: 100%;
+    background: var(--field);
+    border: 1px solid var(--line);
+    border-radius: 0;
+    padding: 0.6875rem 0.875rem;
+    font-size: 0.9375rem;
+    color: var(--text);
+    transition: border-color 0.12s;
+  }
+  .input::placeholder { color: var(--faint); }
+  .input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3125rem;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.1875rem 0.4375rem;
+    border: 1px solid var(--line);
+    background: var(--elevated);
+    color: var(--muted);
+  }
+
+  .skeleton {
+    background: linear-gradient(90deg, var(--surface) 25%, var(--elevated) 50%, var(--surface) 75%);
+    background-size: 200% 100%;
+    animation: var(--animate-shimmer);
+  }
+
+  .no-spinner::-webkit-outer-spin-button,
+  .no-spinner::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .no-spinner { -moz-appearance: textfield; }
+}
+
+@supports (scrollbar-color: auto) {
+  * { scrollbar-color: var(--elevated) transparent; }
+}

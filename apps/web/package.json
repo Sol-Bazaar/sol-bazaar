@@ -1,0 +1,38 @@
+{
+  "name": "@solbazaar/web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start --port 3000",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.2.1",
+    "@reown/appkit": "^1.8.24",
+    "@reown/appkit-adapter-solana": "^1.8.24",
+    "@solbazaar/core": "*",
+    "@solbazaar/crypto": "*",
+    "@solbazaar/db": "*",
+    "@solbazaar/fulfillment": "*",
+    "@solbazaar/jobs": "*",
+    "@solbazaar/provider": "*",
+    "@solbazaar/tenant": "*",
+    "bs58": "^5.0.0",
+    "decimal.js": "^10.4.3",
+    "next": "^15.2.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tweetnacl": "^1.0.3",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.9",
+    "@types/node": "^22.13.1",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
+    "tailwindcss": "^4.0.9",
+    "typescript": "^5.7.3"
+  }
+}

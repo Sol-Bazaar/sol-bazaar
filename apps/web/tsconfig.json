@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["dom", "dom.iterable", "ES2022"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
+    "paths": {
+      "@/*": ["./*"],
+      "@solbazaar/core": ["../../packages/core/src/index.ts"],
+      "@solbazaar/db": ["../../packages/db/src/index.ts"],
+      "@solbazaar/crypto": ["../../packages/crypto/src/index.ts"],
+      "@solbazaar/tenant": ["../../packages/tenant/src/index.ts"],
+      "@solbazaar/provider": ["../../packages/provider/src/index.ts"],
+      "@solbazaar/jobs": ["../../packages/jobs/src/index.ts"],
+      "@solbazaar/fulfillment": ["../../packages/fulfillment/src/index.ts"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}

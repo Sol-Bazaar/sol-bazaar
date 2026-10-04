@@ -1,0 +1,714 @@
+// Sol Bazaar — Prisma schema
+// Multi-tenant white-label gift card platform with Solana on-chain payments.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["views"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum TenantStatus {
+  ACTIVE
+  SUSPENDED
+  DRAFT
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  FULFILLING
+  COMPLETED
+  FAILED
+  EXPIRED
+  CANCELLED
+  REFUNDED
+  UNDERPAID
+}
+
+enum FulfillmentStatus {
+  PENDING
+  PROCESSING
+  DELIVERED
+  FAILED
+  REFUNDED
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  DEAD
+}
+
+enum JobType {
+  FULFILL_ORDER
+  DELIVER_ORDER_EMAIL
+  EXPIRE_ORDER
+  RELEASE_STOCK
+  SYNC_PRICES
+  SYNC_INVENTORY
+  REFUND_ORDER
+  SWEEP_FEES
+  SEND_WEBHOOK
+}
+
+enum ProductScope {
+  GLOBAL
+  TENANT
+}
+
+enum TokenSymbol {
+  SOL
+  USDC
+  USDT
+}
+
+enum AdminRole {
+  SUPERADMIN
+  TENANT_ADMIN
+  AGENT
+}
+
+/// Lifecycle of a platform-fee sweep to the collector wallet.
+enum FeeSweepStatus {
+  PENDING
+  SIGNING
+  SENT
+  CONFIRMED
+  FAILED
+}
+
+// ---------------------------------------------------------------------------
+// Tenancy / white-label
+// ---------------------------------------------------------------------------
+
+model Tenant {
+  id        String       @id @default(cuid())
+  slug      String       @unique // subdomain label: slug.solbazaar.com
+  name      String
+  status    TenantStatus @default(DRAFT)
+  legalName String?
+  supportEmail String?
+  baseDomain String      @default("localhost:3000")
+  defaultCountry String  @default("US")
+
+  // Commercial rules
+  markupBps     Int     @default(500) // 5% markup on face value
+  minOrderUsd   Decimal  @default(5)   @db.Decimal(18, 4)
+  maxOrderUsd   Decimal  @default(2000) @db.Decimal(18, 4)
+  orderTtlMinutes Int    @default(30)
+  acceptedTokens TokenSymbol[]
+
+  // Branding / theme (consumed by the storefront)
+  brand        Json     @default("{}")
+  theme        Json     @default("{}")
+  features     Json     @default("{}")
+
+  domains      Domain[]
+  apiKeys      ApiKey[]
+  orders       Order[]
+  webhookEndpoints WebhookEndpoint[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Domain {
+  id         String    @id @default(cuid())
+  tenantId   String
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  hostname   String    @unique
+  isPrimary  Boolean   @default(false)
+  verifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([tenantId])
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  tenantId   String
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name       String
+  prefix     String    @unique // fc_live_ab12cd  (public half)
+  secretHash String    // scrypt hash of the secret half
+  scopes     String[]  @default(["catalog:read", "orders:write", "orders:read"])
+  rateLimitPerMin Int  @default(120)
+  lastUsedAt DateTime?
+  disabledAt DateTime?
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([tenantId])
+}
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  role         AdminRole @default(TENANT_ADMIN)
+  tenantId     String? // null = platform superadmin
+  mfaSecret    String?
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Catalog
+// ---------------------------------------------------------------------------
+
+model Country {
+  code      String   @id // ISO-3166-1 alpha-2
+  name      String
+  currency  String
+  dialCode  String?
+  flagEmoji String?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(100)
+
+  @@index([isActive, sortOrder])
+}
+
+model Region {
+  code      String   @id // GLOBAL, EU, EEA, NA, LATAM, APAC, MENA, WORLD
+  name      String
+  countries String[]
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(100)
+}
+
+model Category {
+  id        String       @id @default(cuid())
+  scope     ProductScope @default(GLOBAL)
+  scopeKey  String       @unique // `global:top-up` or `<tenantId>:top-up`
+  slug      String
+  name      String
+  description String?
+  icon      String? // lucide icon name or emoji
+  accent    String? // tailwind-ish hex
+  /// Optional parent grouping, used to render a visual section header.
+  /// e.g. sports/experiences/home/music/cars/software all sit under "Other".
+  group     String?
+  sortOrder Int          @default(100)
+  isActive  Boolean      @default(true)
+  tenantId  String?
+  products  Product[]
+
+  @@index([scope, isActive])
+  @@index([group])
+}
+
+model Brand {
+  id        String       @id @default(cuid())
+  scope     ProductScope @default(GLOBAL)
+  scopeKey  String       @unique
+  slug      String
+  name      String
+  logoUrl   String?
+  accent    String?
+  sortOrder Int          @default(100)
+  tenantId  String?
+  products  Product[]
+
+  @@index([scope])
+}
+
+model Product {
+  id         String       @id @default(cuid())
+  scope      ProductScope @default(GLOBAL)
+  scopeKey   String       @unique // `global:netflix-100` or `<tenantId>:netflix-100`
+  slug       String
+  name       String
+  shortName  String?
+  description String
+  logoUrl    String?
+  accent     String?
+  categoryId String
+  category   Category     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  brandId    String?
+  brand      Brand?       @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  tenantId   String?
+
+  // Provider binding (how we actually issue the code)
+  provider      String   // provider key: `mock` | `recharge` | ...
+  externalId    String?  // provider-side product id
+
+  // Inventory
+  totalStock     Int @default(0)
+  reservedStock  Int @default(0)
+  lowStockThreshold Int @default(3)
+  trackStock     Boolean @default(true)
+
+  // Commercial
+  defaultCurrency String  @default("USD")
+  regions         RegionAvailability[]
+  denominations   Denomination[]
+
+  sortOrder   Int     @default(100)
+  isActive    Boolean @default(true)
+  isFeatured  Boolean @default(false)
+  tags        String[] @default([])
+  rating      Decimal? @db.Decimal(3, 2)
+  reviewCount Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orderItems  OrderItem[]
+  tierPrices  TierPrice[]
+
+  @@index([scope, isActive, sortOrder])
+  @@index([categoryId])
+  @@index([tenantId])
+}
+
+model Denomination {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  faceValue Decimal @db.Decimal(18, 4) // e.g. 25.00 in `currency`
+  currency  String  @default("USD")
+  // Price charged to the customer in USD (face value + tenant markup), refreshed by SYNC_PRICES
+  priceUsd  Decimal @db.Decimal(18, 4)
+  /// Issuer-side SKU for this specific denomination (Recharge, Tolarity, ...).
+  /// Most issuers key orders on sku rather than product id alone.
+  providerSku String?
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(100)
+
+  @@unique([productId, faceValue, currency])
+  @@index([productId, isActive, sortOrder])
+}
+
+/// Optional volume discount ladder, e.g. buy 5+ Netflix $25 -> 4% cheaper
+model TierPrice {
+  id            String  @id @default(cuid())
+  productId     String
+  product       Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  minQuantity   Int
+  discountBps   Int     @default(0)
+
+  @@unique([productId, minQuantity])
+}
+
+model RegionAvailability {
+  id          String  @id @default(cuid())
+  productId   String
+  product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  regionCode  String
+  countryCode String? // when the rule targets a single country
+
+  @@unique([productId, regionCode, countryCode])
+  @@index([productId])
+}
+
+// ---------------------------------------------------------------------------
+// Orders & crypto payments
+// ---------------------------------------------------------------------------
+
+model Order {
+  id          String      @id @default(cuid())
+  orderNumber String      @unique // human reference, e.g. FC-7KQ4M2
+  tenantId    String
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  // Contact
+  email       String
+  fullName    String?
+  country     String      @default("US")
+  /// Optional: the connected wallet that placed the order. Convenience only —
+  /// never a substitute for `email`, which is what the codes are sent to.
+  walletAddress String?
+
+  status           OrderStatus     @default(PENDING_PAYMENT)
+  fulfillmentStatus FulfillmentStatus @default(PENDING)
+
+  // Lines
+  items OrderItem[]
+
+  // Money
+  subtotalUsd Decimal @db.Decimal(18, 4) // sum of face values (after tier discounts)
+  discountUsd Decimal @default(0) @db.Decimal(18, 4)
+  feesUsd     Decimal @default(0) @db.Decimal(18, 4)
+  /// Our platform fee = PLATFORM_FEE_BPS of each line. Charged on top of the
+  /// merchant's markup (which already lives inside each lineTotalUsd), and
+  /// accounted separately so it can be swept to the collector wallet.
+  platformFeeUsd Decimal @default(0) @db.Decimal(18, 4)
+  platformFeeBps Int     @default(100) // snapshot at order time, so rate changes never rewrite history
+  /// The same fee expressed in the token the customer paid with.
+  platformFeeAtomic String @default("0")
+  totalUsd    Decimal @db.Decimal(18, 4) // what the customer must actually send
+
+  // Crypto quote (locked at order creation)
+  token            TokenSymbol
+  mintAddress      String?
+  tokenDecimals    Int          @default(9)
+  tokenUsdPrice    Decimal      @db.Decimal(24, 8) // USD per 1 token, locked
+  amountCrypto     Decimal      @db.Decimal(36, 12) // human readable
+  amountAtomic     String // lamport integer as string (never use float/JS number)
+  expectedAtomic   String // amountAtomic + dust slack, integer string
+  toleranceBps     Int          @default(150) // accept -1.5% underpayment
+
+  // Deposit address (HD-derived)
+  depositIndex     Int // derivation index inside the operator wallet
+  depositAddress   String
+  derivationPath   String
+  /// Associated Token Account of `depositAddress` for `mintAddress`.
+  /// SPL transfers credit the ATA, not the owner — we must watch it directly.
+  depositAta       String?
+
+  // Payment outcome
+  receivedAtomic   String      @default("0")
+  paidAtomic       String      @default("0")
+  overpaidUsd      Decimal?    @db.Decimal(18, 4)
+  underpaidUsd     Decimal?    @db.Decimal(18, 4)
+  paymentTxCount   Int         @default(0)
+  confirmations    Int         @default(0)
+  paidAt           DateTime?
+  expiresAt        DateTime
+  refundedUsd      Decimal     @default(0) @db.Decimal(18, 4)
+
+  // Fulfilment + delivery timing. These four columns are the "instant delivery"
+  // SLA: paidAt -> codesIssuedAt -> emailSentAt, and deliveryLatencyMs records
+  // the customer-visible wait. Surfaced on the order page and monitored by the
+  // worker so a regression is caught before support tickets arrive.
+  codesIssuedAt   DateTime?
+  emailSentAt     DateTime?
+  emailAttempts   Int       @default(0)
+  emailError      String?
+  /// Paid -> emailed, in milliseconds. The number we hold ourselves to (<4 min).
+  deliveryLatencyMs Int?
+
+  // Fulfilment
+  fulfillments Fulfillment[]
+  txs          PaymentTx[]
+  feeAccrual   FeeAccrual?
+
+  /// Opaque bearer token for the public tracking link. Only the SHA-256 hash is
+  /// stored, so a database dump cannot be replayed to view live orders.
+  trackingTokenHash String? @unique
+  /// Last 6 characters, purely so a customer can tell two links apart.
+  trackingTokenHint String?
+
+  // Attribution / forensics
+  idempotencyKey  String?     @unique
+  apiKeyId        String?
+  ipHash          String?
+  userAgent       String?
+  geoCountry      String?
+  geoSource       String?
+  referralCode    String?
+  utm             Json?
+  failureReason   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, idempotencyKey])
+  @@index([status, expiresAt])
+  @@index([tenantId, createdAt])
+  @@index([depositAddress])
+  @@index([email])
+}
+
+model OrderItem {
+  id            String  @id @default(cuid())
+  orderId       String
+  order         Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  productSlug   String
+  productName   String
+  brandName     String?
+  logoUrl       String?
+  faceValue     Decimal @db.Decimal(18, 4)
+  currency      String
+  unitPriceUsd  Decimal @db.Decimal(18, 4)
+  quantity      Int
+  lineTotalUsd  Decimal @db.Decimal(18, 4) // face + discount + merchant markup
+  /// Our cut of this line, at PLATFORM_FEE_BPS. Per-item so a partial refund
+  /// returns exactly the fee that was charged on the refunded units.
+  platformFeeUsd Decimal @default(0) @db.Decimal(18, 4)
+  unitAtomic    String
+  lineAtomic    String
+
+  fulfillments Fulfillment[]
+
+  @@index([orderId])
+}
+
+/// One row per observed on-chain transaction touching a deposit address.
+/// `signature` uniqueness is our idempotency guard against double-processing.
+model PaymentTx {
+  id            String   @id @default(cuid())
+  orderId       String
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  signature     String   @unique
+  slot          Int
+  blockTime     DateTime?
+  atomicAmount  String // lamports / token-base-units credited to the address
+  direction     String // IN | OUT
+  confirmations Int      @default(0)
+  finalized     Boolean  @default(false)
+  meta          Json?
+  seenAt        DateTime @default(now())
+
+  @@index([orderId])
+}
+
+model Fulfillment {
+  id             String   @id @default(cuid())
+  orderId        String
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItemId    String?
+  orderItem      OrderItem? @relation(fields: [orderItemId], references: [id], onDelete: SetNull)
+  provider       String
+  externalId     String?  @unique
+  status         FulfillmentStatus @default(PENDING)
+  // AES-256-GCM encrypted JSON array of codes; never store plaintext codes at rest
+  codesCipher    String?
+  codeCount      Int      @default(0)
+  faceValue      Decimal? @db.Decimal(18, 4)
+  currency       String?
+  failureReason  String?
+  providerRaw    Json?
+  deliveredAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([orderId, status])
+}
+
+// ---------------------------------------------------------------------------
+// Platform fees — our 1% cut, tracked then swept to the collector wallet
+// ---------------------------------------------------------------------------
+
+/// One row per order that owes a platform fee.
+///
+/// This is the reconciliation spine: every order contributes exactly one
+/// accrual, which is later attached to a sweep. `orderId` is UNIQUE, so a
+/// retried fulfilment cannot accrue the fee twice.
+model FeeAccrual {
+  id        String      @id @default(cuid())
+  orderId   String      @unique
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  token     TokenSymbol
+  mint      String?
+  decimals  Int
+  /// Portion of `Order.amountAtomic` that belongs to us.
+  atomicAmount String
+  usdAmount Decimal @db.Decimal(18, 4)
+  feeBps    Int
+  collector String // destination address, snapshotted for the audit trail
+
+  sweepId   String?
+  sweep     FeeSweep?  @relation(fields: [sweepId], references: [id], onDelete: SetNull)
+  sweptAt   DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([token, sweptAt])
+  @@index([sweepId])
+}
+
+/// A settled transfer of accumulated fees to the collector wallet.
+model FeeSweep {
+  id      String          @id @default(cuid())
+  token   TokenSymbol
+  mint    String?
+  decimals Int
+  /// Total base units moved. Equals the sum of attached accruals.
+  atomicAmount String
+  feeCount     Int      @default(0)
+  usdAmount    Decimal  @db.Decimal(18, 4)
+
+  /// HD slot the funds were sent from.
+  fromAddress String
+  toAddress   String
+  signature   String?  @unique
+  slot        Int?
+  blockTime   DateTime?
+  status      FeeSweepStatus @default(PENDING)
+  error       String?
+  attempts    Int      @default(0)
+  confirmedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  accruals FeeAccrual[]
+
+  @@index([token, status, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Wallet sign-in
+//
+// Solana has no native "login", so we use Sign-In With Solana: the user signs a
+// human-readable message and we verify the ed25519 signature server-side.
+// Crucially this proves key ownership without ever touching the private key —
+// the wallet extension holds it, we only ever see a public address.
+//
+// Threat model encoded here:
+//   - Nonces are single-use and short-lived, so a captured signed message cannot
+//     be replayed into a new session.
+//   - Messages are bound to our exact origin + cluster, so a signature obtained
+//     on another site (or for devnet) cannot be reused against mainnet.
+//   - Session tokens are stored only as SHA-256 hashes, so a database dump
+//     cannot be replayed as a login.
+// ---------------------------------------------------------------------------
+
+model WalletNonce {
+  id            String   @id @default(cuid())
+  /// 32 hex chars from Web Crypto CSPRNG.
+  nonce         String   @unique
+  /// Which origin the message was bound to.
+  domain        String
+  walletAddress String?
+  expiresAt     DateTime
+  consumedAt    DateTime?
+  ipHash        String?
+  createdAt     DateTime @default(now())
+
+  @@index([expiresAt])
+  @@index([walletAddress])
+}
+
+model WalletSession {
+  id            String   @id @default(cuid())
+  /// Base58 Solana address of the signer.
+  walletAddress String
+  /// SHA-256 of the opaque session token. The raw token exists only in the
+  /// httpOnly cookie and is never stored.
+  tokenHash     String   @unique
+  tenantId      String?
+  /// Cluster the signature was verified against, e.g. `solana:mainnet-beta`.
+  chain         String
+  domain        String
+  userAgent     String?
+  ipHash        String?
+  expiresAt     DateTime
+  revokedAt     DateTime?
+  lastSeenAt    DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  @@index([walletAddress, revokedAt])
+  @@index([expiresAt])
+}
+
+// ---------------------------------------------------------------------------
+// Jobs, webhooks, ops
+// ---------------------------------------------------------------------------
+
+model Job {
+  id          String    @id @default(cuid())
+  type        JobType
+  payload     Json      @default("{}")
+  status      JobStatus @default(PENDING)
+  priority    Int       @default(100)
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(8)
+  runAt       DateTime  @default(now())
+  lockedAt    DateTime?
+  lockedBy    String?
+  lastError   String?
+  dedupeKey   String?   @unique
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status, runAt, priority])
+  @@index([type, status])
+}
+
+model WebhookEndpoint {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  url       String
+  secretEnc String // encrypted signing secret (we need the raw value to sign)
+  events    String[]
+  isActive  Boolean  @default(true)
+  lastStatus Int?
+  lastSentAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  deliveries WebhookDelivery[]
+  @@index([tenantId, isActive])
+}
+
+model WebhookDelivery {
+  id           String   @id @default(cuid())
+  endpointId   String
+  endpoint     WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  event        String
+  payload      Json
+  status       JobStatus @default(PENDING)
+  attempts     Int      @default(0)
+  responseCode Int?
+  responseBody String?
+  nextRunAt    DateTime @default(now())
+  deliveredAt  DateTime?
+  createdAt    DateTime @default(now())
+
+  @@index([status, nextRunAt])
+  @@index([endpointId, createdAt])
+}
+
+model TokenPrice {
+  symbol    TokenSymbol @id
+  mint      String?
+  usd       Decimal     @db.Decimal(24, 8)
+  source    String?
+  fetchedAt DateTime    @default(now())
+}
+
+model FxRate {
+  baseQuote String   @id // e.g. `USD:SOL`, `GBP:USD`
+  rate      Decimal  @db.Decimal(24, 12)
+  source    String?
+  fetchedAt DateTime @default(now())
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actor     String?
+  actorType String   @default("system")
+  action    String
+  entity    String?
+  entityId  String?
+  meta      Json?
+  ipHash    String?
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Read models for the storefront (kept in sync by jobs)
+// ---------------------------------------------------------------------------
+
+model TenantCatalogOverride {
+  id        String   @id @default(cuid())
+  tenantId  String
+  productId String
+  priceBpsAdjust Int @default(0) // extra markup/discount in bps
+  isHidden  Boolean  @default(false)
+  isPinned  Boolean  @default(false)
+  sortBoost Int      @default(0)
+
+  @@unique([tenantId, productId])
+}

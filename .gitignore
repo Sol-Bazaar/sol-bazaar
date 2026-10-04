@@ -1,0 +1,25 @@
+node_modules/
+.pgdata/
+.next/
+dist/
+out/
+build/
+.env
+.env.local
+.env.*.local
+*.log
+npm-debug.log*
+.DS_Store
+coverage/
+.vscode/
+.idea/
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+/tmp/
+worker.log
+
+# Brand-asset pipeline diagnostics (see scripts/build-brand-assets.ts)
+apps/web/public/brand/_preview-*.png
+
+# One-off live-checkout helper; keys live outside the repo
+_livetest.mjs

@@ -1,0 +1,47 @@
+{
+  "name": "sol-bazaar",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sol Bazaar - white-label gift card storefront with Solana crypto payments",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "scripts": {
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:local": "tsx scripts/local-db.ts",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:studio": "prisma studio",
+    "db:seed": "tsx prisma/seed.ts",
+    "wallet:new": "tsx scripts/wallet-new.ts",
+    "wallet:show": "tsx scripts/wallet-show.ts",
+    "keys:new": "tsx scripts/keys-new.ts",
+    "brand:assets": "tsx scripts/build-brand-assets.ts",
+    "test:chain": "tsx scripts/verify-chain.ts",
+    "setup": "npm install && npm run db:generate && npm run db:push && npm run db:seed",
+    "dev": "concurrently -k -n WEB,WORKER -c cyan,magenta \"npm:dev:web\" \"npm:dev:worker\"",
+    "dev:web": "npm run dev --workspace @solbazaar/web",
+    "dev:worker": "npm run dev --workspace @solbazaar/worker",
+    "build": "npm run build --workspace @solbazaar/web",
+    "start": "concurrently -k -n WEB,WORKER -c cyan,magenta \"npm:start:web\" \"npm:start:worker\"",
+    "start:web": "npm run start --workspace @solbazaar/web",
+    "start:worker": "npm run start --workspace @solbazaar/worker",
+    "typecheck": "tsc -b packages/*/tsconfig.json --pretty false 2>&1 | head -50; npm run typecheck --workspace @solbazaar/web"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "dotenv": "^16.4.7",
+    "embedded-postgres": "^17.4.0-beta.15",
+    "prisma": "^6.2.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  },
+  "allowScripts": {}
+}

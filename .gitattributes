@@ -1,0 +1,25 @@
+# Normalise line endings in the repository; check them out as native.
+#
+# Without this, Windows commits CRLF and Linux/macOS check out LF, so every
+# file shows as modified when contributors move between platforms. Worse, a
+# shell script that gains CRLF stops running on Linux.
+
+* text=auto eol=lf
+
+# Windows-only scripts must stay CRLF — cmd.exe will not run an LF batch file.
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+
+# Binary assets. Never let git try to diff or line-ending-normalise these —
+# a mangled logo or favicon is a silent, hard-to-spot breakage.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.ico  binary
+*.pdf  binary
+
+# Lockfiles are generated but must be committed verbatim; npm compares them
+# byte-for-byte, so normalising line endings makes `npm ci` report drift.
+package-lock.json -diff
