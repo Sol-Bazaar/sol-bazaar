@@ -1,0 +1,25 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
+  "env": {
+    "CRYPTOREFILLS_API_KEY": "@cryptorefills_api_key",
+    "CRYPTOREFILLS_WEBHOOK_SECRET": "@cryptorefills_webhook_secret",
+    "CRYPTOREFILLS_API_BASE": "@cryptorefills_api_base",
+    "SOLANA_RPC_URL": "@solana_rpc_url",
+    "SOLANA_CLUSTER": "@solana_cluster",
+    "NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID": "@walletconnect_project_id",
+    "PLATFORM_FEE_WALLET": "@platform_fee_wallet",
+    "PLATFORM_FEE_BPS": "@platform_fee_bps",
+    "WALLET_MASTER_SEED": "@wallet_master_seed",
+    "NEXT_PUBLIC_APP_URL": "@app_url",
+    "NEXT_PUBLIC_APP_NAME": "@app_name"
+  }
+}
