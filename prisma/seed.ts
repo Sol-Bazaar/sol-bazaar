@@ -1050,13 +1050,11 @@ async function seedPrices() {
     create: { symbol: TokenSymbol.SOL, usd: String(sol), source: 'seed' },
     update: {},
   });
-  for (const s of [TokenSymbol.USDC, TokenSymbol.USDT]) {
-    await prisma.tokenPrice.upsert({
-      where: { symbol: s },
-      create: { symbol: s, usd: '1', source: 'seed' },
-      update: {},
-    });
-  }
+  await prisma.tokenPrice.upsert({
+    where: { symbol: TokenSymbol.USDC },
+    create: { symbol: TokenSymbol.USDC, usd: '1', source: 'seed' },
+    update: {},
+  });
 }
 
 /**

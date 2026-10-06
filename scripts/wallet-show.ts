@@ -48,7 +48,7 @@ function main() {
   }
 
   console.log('\n  SPL associated token accounts for the next 3 slots:');
-  for (const symbol of ['USDC', 'USDT'] as TokenSymbol[]) {
+  for (const symbol of ['USDC'] as TokenSymbol[]) {
     try {
       const info = tokenInfo(symbol, isDevnet);
       if (!info.mint) continue;
@@ -62,7 +62,7 @@ function main() {
   }
 
   console.log(
-    '\n  Customers paying with USDC/USDT must be sent to the ATA, not the\n' +
+    '\n  Customers paying with USDC must be sent to the ATA, not the\n' +
       '  owner address. The checkout page shows the correct one automatically.\n',
   );
 }

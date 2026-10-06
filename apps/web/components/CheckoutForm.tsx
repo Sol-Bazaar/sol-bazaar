@@ -11,7 +11,6 @@ import type { TokenSymbol } from '@solbazaar/db';
 const TOKENS: { symbol: TokenSymbol; name: string; hint: string }[] = [
   { symbol: 'SOL', name: 'Solana', hint: 'Fastest and cheapest' },
   { symbol: 'USDC', name: 'USD Coin', hint: 'Stable price' },
-  { symbol: 'USDT', name: 'Tether', hint: 'Most widely held' },
 ];
 
 export function CheckoutForm({

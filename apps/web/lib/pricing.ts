@@ -26,13 +26,13 @@ const ORACLES: Array<{ name: string; url: string; pick: (j: any) => number | nul
   },
 ];
 
-export async function fetchTokenPrices(symbols: TokenSymbol[] = ['SOL', 'USDC', 'USDT']): Promise<Partial<Record<TokenSymbol, Decimal>>> {
+export async function fetchTokenPrices(symbols: TokenSymbol[] = ['SOL', 'USDC']): Promise<Partial<Record<TokenSymbol, Decimal>>> {
   const out: Partial<Record<TokenSymbol, Decimal>> = {};
   const cluster = process.env.SOLANA_CLUSTER ?? 'devnet';
 
   // Stablecoins: assume parity with USD by default, then try an oracle.
   for (const s of symbols) {
-    if (s === 'USDC' || s === 'USDT') out[s] = new Decimal(1);
+    if (s === 'USDC') out[s] = new Decimal(1);
   }
 
   if (symbols.includes('SOL')) {
@@ -132,11 +132,11 @@ export async function quoteOrder(args: {
 /** Current prices for the storefront's crypto picker (no order context). */
 export async function getPriceBoard(): Promise<{ symbol: TokenSymbol; usd: string; decimals: number; mint: string | null; fetchedAt: string | null }[]> {
   const cluster = process.env.SOLANA_CLUSTER ?? 'devnet';
-  const prices = await fetchTokenPrices(['SOL', 'USDC', 'USDT']);
+  const prices = await fetchTokenPrices(['SOL', 'USDC']);
   const rows = await prisma.tokenPrice.findMany();
   const fetchedAt = new Map(rows.map((r) => [r.symbol, r.fetchedAt]));
 
-  return (['SOL', 'USDC', 'USDT'] as TokenSymbol[]).map((s) => {
+  return (['SOL', 'USDC'] as TokenSymbol[]).map((s) => {
     const info = tokenInfoFor(s, !isMainnet(cluster as any));
     return {
       symbol: s,

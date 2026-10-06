@@ -26,15 +26,6 @@ export const TOKENS: Record<TokenSymbol, TokenInfo> = {
     explorer: 'solscan',
     fallbackUsd: 1,
   },
-  USDT: {
-    symbol: 'USDT',
-    name: 'Tether USD',
-    decimals: 6,
-    // USDT on Solana mainnet
-    mint: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
-    explorer: 'solscan',
-    fallbackUsd: 1,
-  },
 };
 
 export const DEVNET_TOKENS: Partial<Record<TokenSymbol, TokenInfo>> = {

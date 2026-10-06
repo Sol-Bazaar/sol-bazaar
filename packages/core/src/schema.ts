@@ -8,7 +8,7 @@ export const countryCode = z
   .length(2)
   .regex(/^[A-Z]{2}$/, 'Must be a 2-letter ISO country code');
 
-export const tokenSymbol = z.enum(['SOL', 'USDC', 'USDT']);
+export const tokenSymbol = z.enum(['SOL', 'USDC']);
 
 export const emailSchema = z.string().trim().toLowerCase().email().max(254);
 

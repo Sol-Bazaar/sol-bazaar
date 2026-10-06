@@ -183,7 +183,7 @@ export async function createOrder(args: CreateOrderArgs): Promise<CreatedOrder> 
     if (line.quantity < 1 || line.quantity > 50) {
       throw validationFailed('Quantity must be between 1 and 50');
     }
-    if (args.token === TokenSymbol.SOL || args.token === TokenSymbol.USDC || args.token === TokenSymbol.USDT) {
+    if (args.token === TokenSymbol.SOL || args.token === TokenSymbol.USDC) {
       if (!args.tenant.acceptedTokens.includes(args.token)) {
         throw badRequest(`${args.token} is not an accepted payment method for this store`);
       }

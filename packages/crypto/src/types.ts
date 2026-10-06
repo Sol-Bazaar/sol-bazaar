@@ -1,5 +1,5 @@
 /** Shared crypto-side types (kept dependency-free so this package stays lean). */
-export type TokenSymbol = 'SOL' | 'USDC' | 'USDT';
+export type TokenSymbol = 'SOL' | 'USDC';
 
 export interface TokenInfo {
   symbol: TokenSymbol;

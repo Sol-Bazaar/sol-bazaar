@@ -139,7 +139,6 @@ export async function refreshTokenPrices(): Promise<void> {
     // Stablecoins default to parity; only SOL needs an external oracle.
     const stables: [TokenSymbol, number][] = [
       [TokenSymbol.USDC, 1],
-      [TokenSymbol.USDT, 1],
     ];
     for (const [symbol, usd] of stables) {
       await prisma.tokenPrice.upsert({

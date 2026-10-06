@@ -69,7 +69,6 @@ enum ProductScope {
 enum TokenSymbol {
   SOL
   USDC
-  USDT
 }
 
 enum AdminRole {
