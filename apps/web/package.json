@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@prisma/client": "^6.2.1",
+    "@prisma/client": "^7.10.0",
     "@reown/appkit": "^1.8.24",
     "@reown/appkit-adapter-solana": "^1.8.24",
     "@solbazaar/core": "*",

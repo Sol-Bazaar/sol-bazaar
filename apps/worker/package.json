@@ -16,7 +16,7 @@
     "@solbazaar/fulfillment": "*",
     "@solbazaar/jobs": "*",
     "@solbazaar/provider": "*",
-    "@prisma/client": "^6.2.1",
+    "@prisma/client": "^7.10.0",
     "decimal.js": "^10.4.3"
   },
   "devDependencies": {
