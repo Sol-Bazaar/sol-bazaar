@@ -21,8 +21,8 @@ const log = createLogger({ service: 'fees' });
 /** Destination for all accumulated platform fees. */
 export const DEFAULT_COLLECTOR_WALLET = 'EKCMKKGehtGp9UtYvAigogmbfBCHsSbMdMWLfsQNY8yZ';
 
-/** 1% = 100 basis points. */
-export const DEFAULT_PLATFORM_FEE_BPS = 100;
+/** 2% = 200 basis points. */
+export const DEFAULT_PLATFORM_FEE_BPS = 200;
 
 export interface PlatformFeeConfig {
   /** Basis points of each line's discounted face value. 0 disables the fee. */
