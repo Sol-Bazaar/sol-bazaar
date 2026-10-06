@@ -2,7 +2,7 @@
 # Builds both the web app and worker in a single image
 
 # ─── Base ───────────────────────────────────────────────────────────────────
-FROM node:20.11-alpine AS base
+FROM node:26.10-alpine AS base
 RUN apk add --no-cache openssl postgresql-client
 WORKDIR /app
 
