@@ -7,7 +7,7 @@ import { createLogger } from '@solbazaar/core';
 
 const log = createLogger({ service: 'admin:layout' });
 
-export function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [authed, setAuthed] = useState(false);
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();

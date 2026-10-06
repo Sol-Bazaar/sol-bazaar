@@ -15,17 +15,60 @@
  * it is why the token can be rotated (`rotateTrackingToken`) if a customer
  * believes a link leaked.
  */
-import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 
+// Web Crypto API - works in Node.js 15+ and all modern browsers
 const TOKEN_BYTES = 32;
+
+function getRandomValues(bytes: Uint8Array): void {
+  if (typeof globalThis.crypto?.getRandomValues === 'function') {
+    globalThis.crypto.getRandomValues(bytes);
+  } else if (typeof require !== 'undefined') {
+    const { randomBytes } = require('crypto');
+    const buf = randomBytes(bytes.length);
+    bytes.set(buf);
+  } else {
+    throw new Error('No secure random source available');
+  }
+}
+
+async function sha256Hex(input: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(input);
+  const hashBuffer = await globalThis.crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+function timingSafeEqual(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a[i] ^ b[i];
+  }
+  return diff === 0;
+}
 
 /** URL-safe, unambiguous token. */
 export function generateTrackingToken(): string {
-  return randomBytes(TOKEN_BYTES).toString('base64url');
+  const buf = new Uint8Array(32);
+  if (typeof globalThis.crypto?.getRandomValues === 'function') {
+    globalThis.crypto.getRandomValues(buf);
+  } else if (typeof require !== 'undefined') {
+    const { randomBytes } = require('crypto');
+    const b = randomBytes(32);
+    buf.set(b);
+  } else {
+    throw new Error('No secure random source available');
+  }
+  return btoa(String.fromCharCode(...buf))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
 }
 
-export function hashTrackingToken(token: string): string {
-  return createHash('sha256').update(token).digest('hex');
+export async function hashTrackingToken(token: string): Promise<string> {
+  return sha256Hex(token);
 }
 
 /** Last 6 chars for UI display only. */
@@ -34,11 +77,12 @@ export function trackingTokenHint(token: string): string {
 }
 
 /** Constant-time compare of a presented token against a stored hash. */
-export function verifyTrackingToken(token: string, storedHash: string | null | undefined): boolean {
+export async function verifyTrackingToken(token: string, storedHash: string | null | undefined): Promise<boolean> {
   if (!token || !storedHash) return false;
-  const a = Buffer.from(hashTrackingToken(token), 'utf8');
-  const b = Buffer.from(storedHash, 'utf8');
-  if (a.length !== b.length) return false;
+  const hash = await hashTrackingToken(token);
+  const encoder = new TextEncoder();
+  const a = encoder.encode(hash);
+  const b = encoder.encode(storedHash);
   return timingSafeEqual(a, b);
 }
 

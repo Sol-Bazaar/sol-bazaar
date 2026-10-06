@@ -224,7 +224,9 @@ export default function AdminTenantsPage() {
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-[13.5px] font-semibold">{t.slug}</span>
                           {t.domains.some((d: any) => d.isPrimary) && (
-                            <Globe className="h-3.5 w-3.5 text-[var(--ok)]" title="Custom domain configured" />
+                            <span title="Custom domain configured">
+                              <Globe className="h-3.5 w-3.5 text-[var(--ok)]" />
+                            </span>
                           )}
                         </div>
                         <div className="mt-0.5 text-[12px] text-[var(--muted)]">{t.name}</div>

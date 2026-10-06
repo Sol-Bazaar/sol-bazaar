@@ -11,7 +11,7 @@ import { ProductCard, ProductCardSkeleton } from '@/components/ProductCard';
 import { CountrySwitcher } from '@/components/CountrySwitcher';
 import { HeroSearch } from '@/components/HeroSearch';
 import { SolanaFlow } from '@/components/SolanaFlow';
-import { ArrowRight, CheckCircle2, Shield, Zap, Globe, Sparkles } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Shield, Zap, Globe, Sparkles, ChevronDown } from 'lucide-react';
 
 export const dynamic = 'force-dynamic'; // geo-personalised; never prerender
 

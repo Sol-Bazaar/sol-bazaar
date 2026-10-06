@@ -62,7 +62,8 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
     );
   }
 
-  const info = tokenInfo(order.token, process.env.SOLANA_CLUSTER !== 'mainnet-beta');
+  const token = order.token === 'USDT' ? 'USDC' : order.token; // USDT removed from supported tokens
+  const info = tokenInfo(token as 'SOL' | 'USDC', process.env.SOLANA_CLUSTER !== 'mainnet-beta');
   const isDevnet = process.env.SOLANA_CLUSTER !== 'mainnet-beta';
   const required = requiredAtomic(BigInt(order.expectedAtomic), order.toleranceBps);
   const received = BigInt(order.receivedAtomic);

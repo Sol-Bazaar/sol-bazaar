@@ -7,7 +7,7 @@ import { CartButton } from './CartButton';
 import { TokenTicker } from './TokenTicker';
 import { ConnectWallet } from './ConnectWallet';
 import { SearchBar } from './SearchBar';
-import { MobileNav } from './MobileNav';
+import MobileNav from './MobileNav';
 import { Search, Menu, X, ShoppingBag, Wallet, Globe, ChevronDown } from 'lucide-react';
 
 /**

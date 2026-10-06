@@ -65,7 +65,8 @@ export async function fetchTokenPrices(symbols: TokenSymbol[] = ['SOL', 'USDC'])
   for (const s of symbols) {
     if (out[s]) continue;
     const cached = await prisma.tokenPrice.findUnique({ where: { symbol: s } });
-    out[s] = cached ? new Decimal(String(cached.usd)) : new Decimal(tokenInfoFor(s, !isMainnet(cluster as any)).fallbackUsd ?? 1);
+    const token = s === 'USDT' ? 'USDC' : s;
+    out[s] = cached ? new Decimal(String(cached.usd)) : new Decimal(tokenInfoFor(token as 'SOL' | 'USDC', !isMainnet(cluster as any)).fallbackUsd ?? 1);
   }
 
   return out;
@@ -92,7 +93,8 @@ export async function quoteOrder(args: {
   toleranceBps: number;
 }): Promise<PriceQuote> {
   const cluster = process.env.SOLANA_CLUSTER ?? 'devnet';
-  const info: TokenInfo = tokenInfoFor(args.token, !isMainnet(cluster as any));
+  const token = args.token === 'USDT' ? 'USDC' : args.token;
+  const info: TokenInfo = tokenInfoFor(token as 'SOL' | 'USDC', !isMainnet(cluster as any));
 
   const stored = await prisma.tokenPrice.findUnique({ where: { symbol: args.token } });
   const live = await fetchTokenPrices([args.token]);
@@ -136,7 +138,7 @@ export async function getPriceBoard(): Promise<{ symbol: TokenSymbol; usd: strin
   const rows = await prisma.tokenPrice.findMany();
   const fetchedAt = new Map(rows.map((r) => [r.symbol, r.fetchedAt]));
 
-  return (['SOL', 'USDC'] as TokenSymbol[]).map((s) => {
+  return (['SOL', 'USDC'] as const).map((s) => {
     const info = tokenInfoFor(s, !isMainnet(cluster as any));
     return {
       symbol: s,

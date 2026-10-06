@@ -146,7 +146,7 @@ export async function createOrder(args: CreateOrderArgs): Promise<CreatedOrder> 
       const retryToken = generateTrackingToken();
       await prisma.order.update({
         where: { id: existing.id },
-        data: { trackingTokenHash: hashTrackingToken(retryToken), trackingTokenHint: trackingTokenHint(retryToken) },
+        data: { trackingTokenHash: await hashTrackingToken(retryToken), trackingTokenHint: trackingTokenHint(retryToken) },
       });
       return {
         order: existing,
@@ -245,7 +245,8 @@ export async function createOrder(args: CreateOrderArgs): Promise<CreatedOrder> 
   // ---- Quote (locked) ----------------------------------------------------
   const toleranceBps = Number(process.env.PAYMENT_TOLERANCE_BPS ?? 150);
   const quote = await quoteOrder({ usdTotal: totalUsd, token: args.token, markupBps: 0, toleranceBps });
-  const info = tokenInfo(args.token, process.env.SOLANA_CLUSTER !== 'mainnet-beta');
+  const token = args.token === 'USDT' ? 'USDC' : args.token;
+  const info = tokenInfo(token as 'SOL' | 'USDC', process.env.SOLANA_CLUSTER !== 'mainnet-beta');
   const expiresAt = new Date(Date.now() + args.tenant.orderTtlMinutes * 60_000);
 
   // Tracking token: opaque bearer credential for /track/<orderNumber>?t=...
@@ -312,7 +313,7 @@ export async function createOrder(args: CreateOrderArgs): Promise<CreatedOrder> 
           derivationPath: account.path,
           depositAta: ata,
 
-          trackingTokenHash: hashTrackingToken(trackingToken),
+          trackingTokenHash: await hashTrackingToken(trackingToken),
           trackingTokenHint: trackingTokenHint(trackingToken),
 
           expiresAt,
@@ -561,7 +562,8 @@ export function maskEmail(email: string): string {
 }
 
 async function describeQuote(order: Order): Promise<CreatedOrder['quote']> {
-  const info = tokenInfo(order.token, process.env.SOLANA_CLUSTER !== 'mainnet-beta');
+  const token = order.token === 'USDT' ? 'USDC' : order.token;
+  const info = tokenInfo(token as 'SOL' | 'USDC', process.env.SOLANA_CLUSTER !== 'mainnet-beta');
   return {
     token: order.token,
     mint: order.mintAddress,
