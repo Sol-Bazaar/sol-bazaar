@@ -1,4 +1,4 @@
-# GiftCard Store
+# Sol Bazaar
 
 Lightweight gift card store with crypto payments (USDC on Solana) using Cryptorefills API.
 

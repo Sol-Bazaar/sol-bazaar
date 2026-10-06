@@ -14,9 +14,9 @@ export interface Tenant {
 export async function getTenant(): Promise<Tenant> {
   return {
     id: 'default',
-    slug: 'giftcard-store',
-    name: 'GiftCard Store',
-    legalName: 'GiftCard Store Inc.',
+    slug: 'sol-bazaar',
+    name: 'Sol Bazaar',
+    legalName: 'Sol Bazaar Inc.',
     tagline: 'Gift cards, paid with crypto.',
     heroHeadline: 'Gift Cards on Crypto',
     heroSubhead: '6,600+ brands. 180+ countries. Pay with USDC on Solana — settled on-chain in seconds, no bank account required.',

@@ -18,16 +18,16 @@ const robotoMono = Roboto_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'GiftCard Store — Buy Gift Cards with Crypto',
-    template: '%s · GiftCard Store',
+    default: 'Sol Bazaar — Buy Gift Cards with Crypto',
+    template: '%s · Sol Bazaar',
   },
   description: 'Buy gift cards instantly with USDC on Solana. 6,600+ brands, 180+ countries, instant delivery.',
-  applicationName: 'GiftCard Store',
+  applicationName: 'Sol Bazaar',
   openGraph: {
-    title: 'GiftCard Store — Buy Gift Cards with Crypto',
+    title: 'Sol Bazaar — Buy Gift Cards with Crypto',
     description: 'Instant digital delivery. Pay with USDC on Solana — settled on-chain in seconds.',
     type: 'website',
-    siteName: 'GiftCard Store',
+    siteName: 'Sol Bazaar',
   },
   twitter: { card: 'summary_large_image' },
   robots: { index: true, follow: true },
