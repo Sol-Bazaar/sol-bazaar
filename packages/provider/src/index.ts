@@ -1,11 +1,13 @@
 import { createLogger, providerError } from '@solbazaar/core';
 import { MockGiftCardProvider } from './mock';
 import { RechargeGiftCardProvider } from './recharge';
+import { TangoGiftCardProvider } from './tango';
 import type { GiftCardProvider } from './types';
 
 export * from './types';
 export { MockGiftCardProvider } from './mock';
 export { RechargeGiftCardProvider } from './recharge';
+export { TangoGiftCardProvider } from './tango';
 
 const log = createLogger({ service: 'provider:registry' });
 
@@ -62,5 +64,25 @@ export function bootstrapProviders(env = process.env): void {
     }
   } else {
     log.warn('recharge_not_configured', { hint: 'Set RECHARGE_API_KEY to enable the live issuer' });
+  }
+
+  if (env.TANGO_API_USERNAME || env.TANGO_API_TOKEN) {
+    const next = new TangoGiftCardProvider({
+      username: env.TANGO_API_USERNAME,
+      password: env.TANGO_API_PASSWORD,
+      token: env.TANGO_API_TOKEN,
+      baseUrl: env.TANGO_BASE_URL,
+      webhookSecret: env.TANGO_WEBHOOK_SECRET,
+      currency: env.TANGO_CURRENCY,
+      accountIdentifier: env.TANGO_ACCOUNT_IDENTIFIER,
+    });
+    if (!hasProvider('tango')) {
+      registerProvider(next);
+      log.info('provider_registered', { key: 'tango' });
+    } else {
+      registry.set('tango', next);
+    }
+  } else {
+    log.warn('tango_not_configured', { hint: 'Set TANGO_API_USERNAME+PASSWORD or TANGO_API_TOKEN + TANGO_ACCOUNT_IDENTIFIER to enable Tango Card' });
   }
 }
