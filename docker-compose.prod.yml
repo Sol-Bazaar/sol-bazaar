@@ -1,0 +1,195 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: solbazaar_pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-solbazaar}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-solbazaar}
+    volumes:
+      - solbazaar_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-solbazaar} -d ${POSTGRES_DB:-solbazaar}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  redis:
+    image: redis:7-alpine
+    container_name: solbazaar_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - solbazaar_redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: solbazaar_web
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-solbazaar}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-solbazaar}
+      REDIS_URL: redis://redis:6379
+      SOLANA_CLUSTER: ${SOLANA_CLUSTER:-mainnet-beta}
+      SOLANA_RPC_URLS: ${SOLANA_RPC_URLS}
+      SOLANA_RPC_API_KEY: ${SOLANA_RPC_API_KEY}
+      SOLANA_RPC_TIMEOUT_MS: ${SOLANA_RPC_TIMEOUT_MS:-15000}
+      BASE_DOMAIN: ${BASE_DOMAIN}
+      APP_URL: ${APP_URL}
+      HOUSE_TENANT_SLUG: ${HOUSE_TENANT_SLUG:-sol-bazaar}
+      WALLET_SEED: ${WALLET_SEED}
+      WALLET_MASTER_KEY: ${WALLET_MASTER_KEY}
+      CODE_ENCRYPTION_KEY: ${CODE_ENCRYPTION_KEY}
+      PLATFORM_FEE_WALLET: ${PLATFORM_FEE_WALLET}
+      PLATFORM_FEE_BPS: ${PLATFORM_FEE_BPS:-200}
+      PLATFORM_FEE_MIN_SWEEP_SOL: ${PLATFORM_FEE_MIN_SWEEP_SOL:-5000000000}
+      PLATFORM_FEE_MAX_SWEEP_SOL: ${PLATFORM_FEE_MAX_SWEEP_SOL:-250000000000}
+      WALLET_SWEEP_INDEX_SOL: ${WALLET_SWEEP_INDEX_SOL:-999000}
+      WALLET_SWEEP_INDEX_SPL: ${WALLET_SWEEP_INDEX_SPL:-999001}
+      RECHARGE_API_KEY: ${RECHARGE_API_KEY}
+      RECHARGE_BASE_URL: ${RECHARGE_BASE_URL}
+      RECHARGE_WEBHOOK_SECRET: ${RECHARGE_WEBHOOK_SECRET}
+      TANGO_API_USERNAME: ${TANGO_API_USERNAME}
+      TANGO_API_PASSWORD: ${TANGO_API_PASSWORD}
+      TANGO_API_TOKEN: ${TANGO_API_TOKEN}
+      TANGO_BASE_URL: ${TANGO_BASE_URL}
+      TANGO_ACCOUNT_IDENTIFIER: ${TANGO_ACCOUNT_IDENTIFIER}
+      TANGO_WEBHOOK_SECRET: ${TANGO_WEBHOOK_SECRET}
+      TANGO_CURRENCY: ${TANGO_CURRENCY:-USD}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-resend}
+      EMAIL_API_KEY: ${EMAIL_API_KEY}
+      EMAIL_FROM: ${EMAIL_FROM}
+      NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: ${NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID}
+      NEXT_PUBLIC_SOLANA_CLUSTER: ${SOLANA_CLUSTER:-mainnet-beta}
+      NEXT_PUBLIC_SOLANA_RPC_URL: ${SOLANA_RPC_URL}
+      OPERATOR_TOKEN: ${OPERATOR_TOKEN}
+      IP_HASH_SALT: ${IP_HASH_SALT}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - '3000:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/api/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: solbazaar_worker
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-solbazaar}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-solbazaar}
+      REDIS_URL: redis://redis:6379
+      SOLANA_CLUSTER: ${SOLANA_CLUSTER:-mainnet-beta}
+      SOLANA_RPC_URLS: ${SOLANA_RPC_URLS}
+      SOLANA_RPC_API_KEY: ${SOLANA_RPC_API_KEY}
+      SOLANA_RPC_TIMEOUT_MS: ${SOLANA_RPC_TIMEOUT_MS:-15000}
+      WATCHER_INTERVAL_MS: ${WATCHER_INTERVAL_MS:-5000}
+      WATCHER_BATCH: ${WATCHER_BATCH:-60}
+      SOL_MIN_CONFIRMATIONS: ${SOL_MIN_CONFIRMATIONS:-32}
+      SPL_MIN_CONFIRMATIONS: ${SPL_MIN_CONFIRMATIONS:-32}
+      REQUIRE_FINALIZED: ${REQUIRE_FINALIZED:-true}
+      PAYMENT_TOLERANCE_BPS: ${PAYMENT_TOLERANCE_BPS:-150}
+      PAYMENT_DUST_BPS: ${PAYMENT_DUST_BPS:-10}
+      PLATFORM_FEE_WALLET: ${PLATFORM_FEE_WALLET}
+      PLATFORM_FEE_BPS: ${PLATFORM_FEE_BPS:-200}
+      PLATFORM_FEE_MIN_SWEEP_SOL: ${PLATFORM_FEE_MIN_SWEEP_SOL:-5000000000}
+      PLATFORM_FEE_MAX_SWEEP_SOL: ${PLATFORM_FEE_MAX_SWEEP_SOL:-250000000000}
+      WALLET_SEED: ${WALLET_SEED}
+      WALLET_MASTER_KEY: ${WALLET_MASTER_KEY}
+      WALLET_SWEEP_INDEX_SOL: ${WALLET_SWEEP_INDEX_SOL:-999000}
+      WALLET_SWEEP_INDEX_SPL: ${WALLET_SWEEP_INDEX_SPL:-999001}
+      FEE_SWEEP_INTERVAL_MS: ${FEE_SWEEP_INTERVAL_MS:-900000}
+      OPERATOR_TOKEN: ${OPERATOR_TOKEN}
+      RECHARGE_API_KEY: ${RECHARGE_API_KEY}
+      RECHARGE_BASE_URL: ${RECHARGE_BASE_URL}
+      RECHARGE_WEBHOOK_SECRET: ${RECHARGE_WEBHOOK_SECRET}
+      TANGO_API_USERNAME: ${TANGO_API_USERNAME}
+      TANGO_API_PASSWORD: ${TANGO_API_PASSWORD}
+      TANGO_API_TOKEN: ${TANGO_API_TOKEN}
+      TANGO_BASE_URL: ${TANGO_BASE_URL}
+      TANGO_ACCOUNT_IDENTIFIER: ${TANGO_ACCOUNT_IDENTIFIER}
+      TANGO_WEBHOOK_SECRET: ${TANGO_WEBHOOK_SECRET}
+      TANGO_CURRENCY: ${TANGO_CURRENCY:-USD}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-resend}
+      EMAIL_API_KEY: ${EMAIL_API_KEY}
+      EMAIL_FROM: ${EMAIL_FROM}
+      JOB_CONCURRENCY: ${JOB_CONCURRENCY:-4}
+      JOB_POLL_MS: ${JOB_POLL_MS:-1500}
+      WORKER_ROLES: watcher,jobs,fees,maintenance
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    command: ["node", "apps/worker/index.js"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  # Optional: Run fee sweeper as a separate scheduled container (alternative to GitHub Actions)
+  # fee-sweeper:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #     target: runner
+  #   container_name: solbazaar_fee_sweeper
+  #   restart: "no"
+  #   environment:
+  #     NODE_ENV: production
+  #     DATABASE_URL: postgresql://${POSTGRES_USER:-solbazaar}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-solbazaar}
+  #     SOLANA_CLUSTER: ${SOLANA_CLUSTER:-mainnet-beta}
+  #     SOLANA_RPC_URLS: ${SOLANA_RPC_URLS}
+  #     SOLANA_RPC_API_KEY: ${SOLANA_RPC_API_KEY}
+  #     WALLET_SEED: ${WALLET_SEED}
+  #     WALLET_MASTER_KEY: ${WALLET_MASTER_KEY}
+  #     PLATFORM_FEE_WALLET: ${PLATFORM_FEE_WALLET}
+  #     PLATFORM_FEE_BPS: ${PLATFORM_FEE_BPS:-200}
+  #     PLATFORM_FEE_MIN_SWEEP_SOL: ${PLATFORM_FEE_MIN_SWEEP_SOL:-5000000000}
+  #     PLATFORM_FEE_MAX_SWEEP_SOL: ${PLATFORM_FEE_MAX_SWEEP_SOL:-250000000000}
+  #     WALLET_SWEEP_INDEX_SOL: ${WALLET_SWEEP_INDEX_SOL:-999000}
+  #     WALLET_SWEEP_INDEX_SPL: ${WALLET_SWEEP_INDEX_SPL:-999001}
+  #     OPERATOR_TOKEN: ${OPERATOR_TOKEN}
+  #   command: ["node", "scripts/fee-sweeper.ts", "--force"]
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+
+volumes:
+  solbazaar_pgdata:
+  solbazaar_redisdata:

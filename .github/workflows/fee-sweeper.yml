@@ -1,0 +1,63 @@
+name: Fee Sweeper
+
+on:
+  schedule:
+    # Run every 15 minutes during business hours, every hour otherwise
+    - cron: '*/15 8-22 * * *'   # Every 15 min 8am-10pm UTC
+    - cron: '0 * * * *'         # Hourly outside business hours
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force sweep even below minimum threshold'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  sweep:
+    name: Sweep Platform Fees
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      NODE_VERSION: '20.11'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run db:generate
+
+      - name: Run fee sweeper
+        run: |
+          npm run worker -- src/fee-sweeper.ts ${{ github.event.inputs.force == 'true' && '--force' || '' }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SOLANA_CLUSTER: ${{ secrets.SOLANA_CLUSTER }}
+          SOLANA_RPC_URLS: ${{ secrets.SOLANA_RPC_URLS }}
+          SOLANA_RPC_API_KEY: ${{ secrets.SOLANA_RPC_API_KEY }}
+          WALLET_SEED: ${{ secrets.WALLET_SEED }}
+          WALLET_MASTER_KEY: ${{ secrets.WALLET_MASTER_KEY }}
+          PLATFORM_FEE_WALLET: ${{ secrets.PLATFORM_FEE_WALLET }}
+          PLATFORM_FEE_BPS: ${{ secrets.PLATFORM_FEE_BPS }}
+          PLATFORM_FEE_MIN_SWEEP_SOL: ${{ secrets.PLATFORM_FEE_MIN_SWEEP_SOL }}
+          PLATFORM_FEE_MAX_SWEEP_SOL: ${{ secrets.PLATFORM_FEE_MAX_SWEEP_SOL }}
+          WALLET_SWEEP_INDEX_SOL: ${{ secrets.WALLET_SWEEP_INDEX_SOL }}
+          WALLET_SWEEP_INDEX_SPL: ${{ secrets.WALLET_SWEEP_INDEX_SPL }}
+          OPERATOR_TOKEN: ${{ secrets.OPERATOR_TOKEN }}
+          LOG_LEVEL: info
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "Fee sweep failed! Check GitHub Actions logs."
+          # Add your notification logic here (Slack, Discord, email, etc.)

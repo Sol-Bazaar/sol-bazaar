@@ -26,6 +26,7 @@ loadEnvFile({ path: path.resolve(process.cwd(), '.env.local') });
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  output: 'standalone',
 
   // Workspace packages ship raw TS; Next compiles them via transpilePackages.
   // (path aliases alone are not enough — the resolver still needs to treat the
