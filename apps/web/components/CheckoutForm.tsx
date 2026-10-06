@@ -7,10 +7,11 @@ import { useWallet } from './WalletProvider';
 import { BalanceCheck } from './BalanceCheck';
 import { submitCheckout } from '@/app/checkout/actions';
 import type { TokenSymbol } from '@solbazaar/db';
+import { ChevronRight, Shield, CircleDollarSign, CreditCard, Loader2 } from 'lucide-react';
 
-const TOKENS: { symbol: TokenSymbol; name: string; hint: string }[] = [
-  { symbol: 'SOL', name: 'Solana', hint: 'Fastest and cheapest' },
-  { symbol: 'USDC', name: 'USD Coin', hint: 'Stable price' },
+const TOKENS: { symbol: TokenSymbol; name: string; hint: string; icon: React.ReactNode }[] = [
+  { symbol: 'SOL', name: 'Solana', hint: 'Fastest and cheapest', icon: <CircleDollarSign className="h-4 w-4" /> },
+  { symbol: 'USDC', name: 'USD Coin', hint: 'Stable price', icon: <CreditCard className="h-4 w-4" /> },
 ];
 
 export function CheckoutForm({
@@ -67,7 +68,7 @@ export function CheckoutForm({
   const valid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
   const canSubmit = valid && !belowMin && !aboveMax && !pending && lines.length > 0;
 
-  // Platform fee is 1% of the card value (face), charged on top of the
+  // Platform fee is 2% of the card value (face), charged on top of the
   // merchant markup. Displayed explicitly — burying it would be both a legal
   // and a trust problem.
   const feeBps = platformFeeBps;
@@ -106,23 +107,26 @@ export function CheckoutForm({
     <form onSubmit={onSubmit} className="grid gap-6 lg:grid-cols-[1fr_360px]">
       <div className="space-y-5">
         {/* Contact */}
-        <section className="card p-5">
-          <h2 className="text-[15px] font-bold">Delivery details</h2>
+        <section className="card p-5 sm:p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <Shield className="h-4 w-4" style={{ color: 'var(--accent)' }} />
+            <h2 className="text-[15px] font-bold">Delivery details</h2>
+          </div>
           <p className="mt-1 text-[12.5px] text-[var(--muted)]">
             We email your redeemable codes here. Double-check it — we cannot change it once the order is placed.
           </p>
 
-          <div className="mt-4 space-y-3.5">
-            <label className="block">
-              <span className="mb-1.5 flex items-center gap-1.5 text-[12.5px] font-semibold">
+          <div className="mt-4 space-y-4">
+            <label className="block space-y-1.5">
+              <div className="flex items-center gap-1.5 text-[12.5px] font-semibold">
                 Email address
                 <span
                   className="badge text-[9.5px] font-bold"
-                  style={{ color: 'var(--accent)', borderColor: 'color-mix(in srgb, var(--accent) 45%, transparent)' }}
+                  style={{ color: 'var(--accent)', borderColor: 'color-mix(in_srgb, var(--accent) 45%, transparent)' }}
                 >
                   Required
                 </span>
-              </span>
+              </div>
               <input
                 type="email"
                 required
@@ -130,23 +134,23 @@ export function CheckoutForm({
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 autoComplete="email"
-                className="input"
+                className={`input ${email && !valid ? 'input-error' : ''}`}
                 aria-invalid={!!email && !valid}
                 aria-describedby="email-hint"
               />
-              <p id="email-hint" className="mt-1.5 text-[11.5px] leading-relaxed text-[var(--muted)]">
+              <p id="email-hint" className="text-[11.5px] leading-relaxed text-[var(--muted)]">
                 We send your redeemable codes here and show them on the order page. We cannot change it once the
                 order is placed, so double-check it.
               </p>
               {email && !valid ? (
-                <span className="mt-1 block text-[12px] font-medium" style={{ color: 'var(--bad)' }}>
+                <span className="text-[12px] font-medium" style={{ color: 'var(--bad)' }}>
                   Enter a valid email address, e.g. you@example.com
                 </span>
               ) : null}
             </label>
 
-            <label className="block">
-              <span className="mb-1.5 block text-[12.5px] font-semibold">
+            <label className="block space-y-1.5">
+              <span className="text-[12.5px] font-semibold">
                 Full name <span className="font-normal text-[var(--muted)]">(optional)</span>
               </span>
               <input
@@ -163,8 +167,11 @@ export function CheckoutForm({
         </section>
 
         {/* Wallet balance pre-check. Advisory only — see BalanceCheck. */}
-        <section className="card p-5">
-          <h2 className="text-[15px] font-bold">Wallet</h2>
+        <section className="card p-5 sm:p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <CircleDollarSign className="h-4 w-4" style={{ color: 'var(--accent)' }} />
+            <h2 className="text-[15px] font-bold">Wallet</h2>
+          </div>
           <div className="mt-3.5">
             <BalanceCheck
               tokens={{
@@ -191,13 +198,16 @@ export function CheckoutForm({
         </section>
 
         {/* Payment method */}
-        <section className="card p-5">
-          <h2 className="text-[15px] font-bold">Pay with</h2>
+        <section className="card p-5 sm:p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <CreditCard className="h-4 w-4" style={{ color: 'var(--accent)' }} />
+            <h2 className="text-[15px] font-bold">Pay with</h2>
+          </div>
           <p className="mt-1 text-[12.5px] text-[var(--muted)]">
             You&apos;ll get a dedicated Solana address to send to. The crypto amount is locked for {orderTtlMinutes} minutes.
           </p>
 
-          <div className="mt-4 grid gap-2.5 sm:grid-cols-3">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {tokenOptions.map((t) => {
               const active = t.symbol === token;
               return (
@@ -206,18 +216,28 @@ export function CheckoutForm({
                   type="button"
                   onClick={() => setToken(t.symbol)}
                   aria-pressed={active}
-                  className="rounded-none border p-3 text-left transition-all"
+                  className="relative rounded-none border p-4 text-left transition-all"
                   style={
                     active
-                      ? { borderColor: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 12%, transparent)', boxShadow: '0 0 0 1px var(--accent)' }
-                      : { borderColor: 'var(--line)', background: 'color-mix(in srgb, var(--bg) 45%, transparent)' }
+                      ? { borderColor: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 8%, transparent)', boxShadow: '0 0 0 1px var(--accent)' }
+                      : { borderColor: 'var(--line)', background: 'color-mix(in srgb, var(--bg) 40%, transparent)' }
                   }
                 >
-                  <div className="font-mono text-[13px] font-medium" style={active ? { color: 'var(--accent)' } : undefined}>
-                    {t.symbol}
+                  <div className="flex items-center gap-3">
+                    <span className="grid h-9 w-9 place-items-center rounded-none border border-[var(--line)] bg-[color-mix(in_srgb,var(--elevated)_50%,transparent)] text-[var(--accent)]">
+                      {t.icon}
+                    </span>
+                    <div>
+                      <div className="font-mono text-[14px] font-medium" style={active ? { color: 'var(--accent)' } : undefined}>
+                        {t.symbol}
+                      </div>
+                      <div className="mt-0.5 text-[12px] font-semibold">{t.name}</div>
+                      <div className="text-[11px] text-[var(--muted)]">{t.hint}</div>
+                    </div>
                   </div>
-                  <div className="mt-0.5 text-[12px] font-semibold">{t.name}</div>
-                  <div className="text-[11px] text-[var(--muted)]">{t.hint}</div>
+                  {active && (
+                    <div className="absolute -right-2 -top-2 h-5 w-5 rounded-full bg-[var(--accent)]" />
+                  )}
                 </button>
               );
             })}
@@ -225,11 +245,14 @@ export function CheckoutForm({
         </section>
 
         {/* Summary of lines */}
-        <section className="card p-5">
-          <h2 className="text-[15px] font-bold">Your cards</h2>
+        <section className="card p-5 sm:p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <CircleDollarSign className="h-4 w-4" style={{ color: 'var(--accent)' }} />
+            <h2 className="text-[15px] font-bold">Your cards</h2>
+          </div>
           <ul className="mt-3.5 divide-y divide-[var(--line)]">
             {lines.map((l) => (
-              <li key={`${l.productSlug}-${l.faceValue}`} className="flex items-center justify-between gap-4 py-2.5">
+              <li key={`${l.productSlug}-${l.faceValue}`} className="flex items-center justify-between gap-4 py-3">
                 <div className="min-w-0">
                   <div className="truncate text-[13.5px] font-semibold">{l.productName}</div>
                   <div className="font-mono text-[11.5px] text-[var(--muted)]">
@@ -247,9 +270,12 @@ export function CheckoutForm({
 
       {/* Sticky summary */}
       <aside className="lg:sticky lg:top-24 lg:self-start">
-        <div className="card p-5">
-          <h2 className="text-[15px] font-bold">Summary</h2>
-          <dl className="mt-4 space-y-2.5 text-[13px]">
+        <div className="card p-5 sm:p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <CircleDollarSign className="h-4 w-4" style={{ color: 'var(--accent)' }} />
+            <h2 className="text-[15px] font-bold">Summary</h2>
+          </div>
+          <dl className="mt-4 space-y-3 text-[13px]">
             <div className="flex justify-between">
               <dt className="text-[var(--muted)]">Items</dt>
               <dd className="font-mono tabular-nums">{lines.reduce((a, l) => a + l.quantity, 0)}</dd>
@@ -271,7 +297,7 @@ export function CheckoutForm({
           </dl>
 
           {/* Fee disclosure — stated plainly, with where the money goes. */}
-          <div className="mt-3.5 rounded-none border border-[var(--line)] bg-[color-mix(in_srgb,var(--bg)_45%,transparent)] p-3.5">
+          <div className="mt-4 rounded-none border border-[var(--line)] bg-[color-mix(in_srgb,var(--bg)_45%,transparent)] p-3.5">
             <div className="flex items-center justify-between text-[12px]">
               <span className="font-semibold">Platform fee ({(feeBps / 100).toFixed(2)}%)</span>
               <span className="font-mono tabular-nums">${platformFee.toFixed(2)}</span>
@@ -312,7 +338,17 @@ export function CheckoutForm({
           ) : null}
 
           <button type="submit" disabled={!canSubmit} className="btn btn-primary btn-lg mt-4 w-full">
-            {pending ? 'Creating your order…' : 'Get payment address'}
+            {pending ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Creating your order…
+              </>
+            ) : (
+              <>
+                Get payment address
+                <ChevronRight className="h-4 w-4 ml-2" />
+              </>
+            )}
           </button>
 
           <p className="mt-3 text-center text-[11px] leading-relaxed text-[var(--muted)]">

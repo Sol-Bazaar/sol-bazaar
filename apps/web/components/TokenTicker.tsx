@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { TrendingUp, DollarSign } from 'lucide-react';
 
 /**
  * Live SOL price chip.
@@ -44,6 +45,9 @@ export function TokenTicker() {
       </span>
       <span className="text-[var(--muted)]">SOL</span>
       <span className="font-mono tabular-nums">{price ? `$${Number(price).toFixed(2)}` : '—'}</span>
+      {price && (
+        <TrendingUp className="h-3 w-3 text-[var(--ok)]" />
+      )}
     </span>
   );
 }

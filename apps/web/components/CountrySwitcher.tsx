@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { TOP_COUNTRIES, countryLabel, normaliseCountry } from '@solbazaar/core/client';
+import { Globe, ChevronDown, Check } from 'lucide-react';
 
 /**
  * Country picker.
@@ -50,7 +51,7 @@ export function CountrySwitcher({ initial }: { initial?: string }) {
     startTransition(() => router.replace(`${pathname}?${qs.toString()}`, { scroll: false }));
   };
 
-  const flag = TOP_COUNTRIES.find((c) => c.code === current)?.flag ?? '\u{1F30D}';
+  const flag = TOP_COUNTRIES.find((c) => c.code === current)?.flag ?? '🌍';
 
   return (
     <div className="relative" ref={ref}>
@@ -62,13 +63,14 @@ export function CountrySwitcher({ initial }: { initial?: string }) {
         aria-expanded={open}
         aria-label={`Shopping region: ${countryLabel(current)}. Change`}
       >
-        <span className="text-[15px] leading-none" aria-hidden>
-          {flag}
+        <span className="flex items-center gap-1.5">
+          <span className="text-[15px] leading-none" aria-hidden>
+            {flag}
+          </span>
+          <span className="hidden font-mono font-semibold sm:inline">{current}</span>
+          <Globe className="h-3.5 w-3.5" />
+          <ChevronDown className="h-3.5 w-3.5" />
         </span>
-        <span className="hidden font-mono font-semibold sm:inline">{current}</span>
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden>
-          <path d="m6 9 6 6 6-6" />
-        </svg>
       </button>
 
       {open ? (
@@ -96,9 +98,7 @@ export function CountrySwitcher({ initial }: { initial?: string }) {
                 <span className="flex-1">{c.label}</span>
                 <span className="font-mono text-[11px] font-semibold text-[var(--muted)]">{c.code}</span>
                 {c.code === current ? (
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="3.5" aria-hidden>
-                    <path d="m5 13 4 4L19 7" />
-                  </svg>
+                  <Check className="h-4 w-4 shrink-0" style={{ color: 'var(--accent)' }} />
                 ) : null}
               </button>
             ))}

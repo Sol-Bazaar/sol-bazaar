@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition, useCallback } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { Search, X, Loader2, ChevronRight, Tag } from 'lucide-react';
 
 export interface SearchHit {
   slug: string;
@@ -12,18 +13,11 @@ export interface SearchHit {
   categorySlug: string;
   priceFrom: string;
   minFace: number | null;
+  isCategory?: boolean;
 }
 
 /**
  * Catalogue search with live suggestions.
- *
- * Two behaviours, because they serve different intents:
- *   - **As you type** → a dropdown of matching cards (fastest path to an item).
- *   - **Enter / click** → pushes `?q=` so the full results page renders
- *     server-side and the URL is shareable/bookmarkable.
- *
- * Debounced to 220ms and aborts in-flight requests, so typing fast does not
- * queue a burst of catalogue queries.
  */
 export function SearchBar({
   autoFocus,
@@ -46,7 +40,6 @@ export function SearchBar({
   const abortRef = useRef<AbortController | null>(null);
   const cursor = useRef(-1);
 
-  // Keep in sync when the URL changes (back button, category click, etc).
   useEffect(() => {
     setTerm(params.get('q') ?? '');
   }, [params]);
@@ -90,7 +83,6 @@ export function SearchBar({
       const products = body?.data?.products ?? [];
       const cats = body?.data?.categories ?? [];
       const mapped: SearchHit[] = [
-        // Category matches first — "vpn" should surface the category too.
         ...cats
           .filter((c: any) => String(c.name).toLowerCase().includes(q.toLowerCase()))
           .slice(0, 2)
@@ -118,7 +110,6 @@ export function SearchBar({
       ];
       if (alive(ctl)) setHits(mapped.slice(0, 8));
     } catch {
-      /* aborted or offline — keep the previous suggestions */
     } finally {
       if (alive(ctl)) setBusy(false);
     }
@@ -134,7 +125,6 @@ export function SearchBar({
     const next = new URLSearchParams(pathname === '/products' ? params.toString() : '');
     if (value.trim()) next.set('q', value.trim());
     else next.delete('q');
-    // A new search resets the paging/filter context.
     next.delete('cursor');
     startTransition(() => router.replace(`${pathname}?${next.toString()}`, { scroll: false }));
   };
@@ -179,7 +169,7 @@ export function SearchBar({
         <div
           className={`card flex items-center gap-2 transition-shadow focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--accent)_18%,transparent)] ${size === 'lg' ? 'px-4 py-1' : 'p-1.5 pl-3.5'}`}
         >
-          <svg
+          <Search
             width={size === 'lg' ? 19 : 17}
             height={size === 'lg' ? 19 : 17}
             viewBox="0 0 24 24"
@@ -189,10 +179,7 @@ export function SearchBar({
             strokeLinecap="round"
             className="shrink-0"
             aria-hidden
-          >
-            <circle cx="11" cy="11" r="7" />
-            <path d="m21 21-4.3-4.3" />
-          </svg>
+          />
 
           <input
             type="search"
@@ -224,17 +211,12 @@ export function SearchBar({
               className="grid h-7 w-7 shrink-0 place-items-center rounded-none text-[var(--muted)] transition-colors hover:bg-[color-mix(in_srgb,var(--elevated)_75%,transparent)] hover:text-[var(--text)]"
               aria-label="Clear search"
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
-                <path d="M18 6 6 18M6 6l12 12" />
-              </svg>
+              <X width="13" height="13" strokeWidth="2.4" strokeLinecap="round" aria-hidden />
             </button>
           ) : null}
 
           {busy ? (
-            <svg width="15" height="15" viewBox="0 0 24 24" className="shrink-0 animate-spin text-[var(--muted)]" aria-hidden>
-              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" fill="none" opacity=".25" />
-              <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-            </svg>
+            <Loader2 width="15" height="15" viewBox="0 0 24 24" className="shrink-0 animate-spin text-[var(--muted)]" aria-hidden />
           ) : null}
 
           <button type="submit" className={`btn btn-primary shrink-0 ${size === 'lg' ? '' : 'btn-sm'}`} disabled={pending}>
@@ -264,7 +246,6 @@ export function SearchBar({
                   className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-none border border-white/10 bg-[color-mix(in_srgb,var(--elevated)_70%,transparent)] text-[10px] font-medium"
                 >
                   {h.logoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
                     <img src={h.logoUrl} alt="" className="h-full w-full object-contain p-1" />
                   ) : (
                     (h.shortName || h.name).slice(0, 2).toUpperCase()
@@ -273,7 +254,14 @@ export function SearchBar({
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13.5px] font-semibold">{h.name}</span>
                   <span className="block truncate text-[11.5px] text-[var(--muted)]">
-                    {h.categoryName}
+                    {h.isCategory ? (
+                      <>
+                        <Tag className="h-3 w-3 inline mr-1" />
+                        {h.categoryName}
+                      </>
+                    ) : (
+                      h.categoryName
+                    )}
                     {h.minFace ? ` · from $${Number(h.minFace).toLocaleString('en-US')}` : ''}
                   </span>
                 </span>
@@ -282,6 +270,7 @@ export function SearchBar({
                     {h.priceFrom}
                   </span>
                 ) : null}
+                <ChevronRight className="h-4 w-4 text-[var(--muted)] shrink-0" />
               </button>
             </li>
           ))}

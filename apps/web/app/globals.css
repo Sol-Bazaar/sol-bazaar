@@ -1,21 +1,15 @@
 @import 'tailwindcss';
 
 /*
- * Sol Bazaar design system
- * ========================
+ * Sol Bazaar design system — Digivibe Edition
+ * ============================================
  *
- * A technical-drawing aesthetic: near-black ground, a visible hairline grid,
- * square corners, crop-mark brackets on interactive cells, and monospaced
- * micro-labels with bracketed counts.
+ * A technical-drawing aesthetic evolved: near-black ground with subtle grid,
+ * square corners, bracket crop-marks on interactive cells, monospaced labels
+ * with bracketed counts. Professional, deliberate, digital-native.
  *
- * Why a grid rather than cards floating on black: a gift-card grid is dozens of
- * third-party logos. Giving each one its own rounded, filled card competes with
- * the logos themselves. Laying them on a shared hairline grid instead reads as
- * one surface — the chrome recedes and the artwork carries the colour.
- *
- * The one exception to "colourless chrome" is the brand mark and the `--accent-2`
- * gradient, which the logo itself supplies. That is enough; nothing else is
- * allowed to be colourful.
+ * Why a grid: a gift-card grid is dozens of third-party logos. A shared hairline
+ * grid reads as one surface — chrome recedes, artwork carries the colour.
  *
  * Every colour is a CSS custom property so a white-label tenant can be injected
  * server-side as inline style on <html> — a rebranded storefront renders
@@ -25,6 +19,7 @@
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-elevated: var(--elevated);
+  --color-field: var(--field);
   --color-line: var(--line);
   --color-grid: var(--grid);
   --color-text: var(--text);
@@ -44,9 +39,28 @@
   --font-sans: var(--font-outfit), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: var(--font-roboto-mono), ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
+  /* Animations */
   --animate-shimmer: shimmer 2.4s linear infinite;
   --animate-pulse-ring: pulse-ring 2.2s ease-out infinite;
   --animate-scan: scan 2.6s linear infinite;
+  --animate-fade-in: fade-in 0.18s ease-out;
+  --animate-slide-up: slide-up 0.22s ease-out;
+  --animate-scale-in: scale-in 0.15s ease-out;
+
+  /* Spacing tokens (multiples of 4px) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Cell size for grid alignment */
+  --cell: 24px;
 }
 
 @keyframes shimmer {
@@ -61,6 +75,18 @@
 @keyframes scan {
   0% { transform: translateY(-100%); }
   100% { transform: translateY(400%); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 /* ── Base ───────────────────────────────────────────────────────────────── */
@@ -80,7 +106,7 @@ body {
   color: var(--text);
   font-family: var(--font-sans);
   font-size: 1rem;
-  line-height: 1.5;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -97,8 +123,9 @@ body {
 }
 
 /*
- * Headings are medium-weight with tight tracking. Weight 800 reads as loud;
- * medium reads as confident, and it lets the logos stay the loudest thing.
+ * Headings: medium weight with tight tracking.
+ * Weight 800 reads as loud; medium reads as confident.
+ * This lets the logos stay the loudest thing on the page.
  */
 h1, h2, h3, h4, h5, h6 {
   font-weight: 500;
@@ -128,16 +155,12 @@ h1, h2, h3, h4, h5, h6 {
 
   /*
    * The signature label: monospaced, uppercase, wide tracking, faint.
-   *
-   * Counts go in brackets — `GAMING [10]` — which is the single cheapest way to
-   * make a utilitarian label feel like part of a technical drawing rather than a
-   * marketing site.
+   * Counts go in brackets — `GAMING [10]` — which makes a utilitarian
+   * label feel like part of a technical drawing rather than a marketing site.
    */
   .t-label {
     font-family: var(--font-mono);
-    /* 0.6875rem = 11px. Readable on a phone without pinching, and still small
-     * enough to read as a technical annotation beside 13-14px body text. */
-    font-size: 0.6875rem;
+    font-size: 0.6875rem; /* 11px */
     line-height: 1.2;
     font-weight: 400;
     letter-spacing: 0.14em;
@@ -162,11 +185,8 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   /*
-   * The grid field.
-   *
-   * Two repeating gradients rather than a table of bordered divs: one paint,
-   * no extra DOM, and it stays crisp at any column count because the cell size
-   * is a fixed token. Cells are transparent so the card art on top reads clearly.
+   * The grid field — two repeating gradients, one paint, no extra DOM.
+   * Stays crisp at any column count because cell size is a fixed token.
    */
   .grid-field {
     background-image:
@@ -176,10 +196,8 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   /*
-   * Crop marks. Four corner brackets drawn with two pseudo-elements, each using
-   * two borders — no extra nodes, and they scale with the element.
-   *
-   * Only meaningful on a rectangular box, so the element must be positioned.
+   * Crop marks (brackets). Four corner brackets using two pseudo-elements.
+   * Only meaningful on a rectangular box — element must be positioned.
    */
   .brackets { position: relative; }
   .brackets::before,
@@ -201,15 +219,14 @@ h1, h2, h3, h4, h5, h6 {
     border-bottom: 1px solid var(--accent);
     border-right: 1px solid var(--accent);
   }
-  /* Only reveal on interaction — always-on brackets turn the page into a wireframe. */
+  /* Hover-reveal brackets */
   .brackets-hover::before,
   .brackets-hover::after { opacity: 0; }
   .brackets-hover:hover::before,
   .brackets-hover:hover::after,
   .brackets-hover:focus-visible::before,
   .brackets-hover:focus-visible::after { opacity: 1; }
-
-  /* Static brackets, for cells that should always read as a data cell. */
+  /* Static brackets for always-visible data cells */
   .brackets-always::before,
   .brackets-always::after { opacity: 0.55; }
 
@@ -219,13 +236,21 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: 0;
   }
 
+  .card-elevated {
+    background: var(--elevated);
+    border: 1px solid var(--line);
+    border-radius: 0;
+  }
+
+  .field {
+    background: var(--field);
+    border: 1px solid var(--line);
+    border-radius: 0;
+  }
+
   /*
-   * Notched buttons.
-   *
-   * A 45° clip on one corner reads as a machined/technical control and is the
-   * clearest signal that this UI is deliberate rather than unstyled. The clip
-   * means the focus ring has to be drawn manually — a clipped element clips its
-   * own outline too, so hover/focus changes the border colour instead.
+   * Notched buttons — 45° clip on one corner reads as a machined control.
+   * The clip means focus ring must be drawn manually via border colour.
    */
   .btn {
     display: inline-flex;
@@ -238,7 +263,7 @@ h1, h2, h3, h4, h5, h6 {
     letter-spacing: 0.08em;
     text-transform: uppercase;
     padding: 0.6875rem 1.125rem;
-    transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+    transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
     white-space: nowrap;
     cursor: pointer;
     border: 1px solid var(--line);
@@ -267,8 +292,19 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--accent);
   }
 
+  .btn-outline {
+    background: transparent;
+    border-color: var(--line);
+    color: var(--text);
+  }
+  .btn-outline:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+  }
+
   .btn-lg { padding: 0.875rem 1.5rem; font-size: 0.8125rem; }
   .btn-sm { padding: 0.375rem 0.6875rem; font-size: 0.6875rem; }
+  .btn-xs { padding: 0.25rem 0.5rem; font-size: 0.625rem; }
 
   .input {
     width: 100%;
@@ -278,12 +314,18 @@ h1, h2, h3, h4, h5, h6 {
     padding: 0.6875rem 0.875rem;
     font-size: 0.9375rem;
     color: var(--text);
-    transition: border-color 0.12s;
+    transition: border-color 0.12s, box-shadow 0.12s;
   }
   .input::placeholder { color: var(--faint); }
   .input:focus {
     outline: none;
     border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+  .input-error:focus {
+    outline: none;
+    border-color: var(--bad);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--bad) 18%, transparent);
   }
 
   .badge {
@@ -291,10 +333,7 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
     gap: 0.3125rem;
     font-family: var(--font-mono);
-    /* 10px from `sm` up (see the mobile override below). Badges carry stock
-     * state, ratings and brand names, so they are content — not decoration —
-     * and the type scale is the only thing keeping them legible. */
-    font-size: 0.625rem;
+    font-size: 0.625rem; /* 10px base */
     letter-spacing: 0.12em;
     text-transform: uppercase;
     padding: 0.1875rem 0.4375rem;
@@ -303,19 +342,9 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--muted);
   }
 
-  /*
-   * Phones: 11px badges.
-   *
-   * 10px monospace reads as an intentional annotation on a desktop, where it sits
-   * beside 13-14px body copy. On a phone the same 10px is below what most people
-   * can read without pinching, and these badges are not decoration — "In stock",
-   * "Instant delivery" and the star rating are exactly the information a buyer
-   * scans the card for. Bumping the one base class fixes every call site at once,
-   * instead of patching each badge individually and missing some.
-   */
   @media (max-width: 639px) {
     .badge {
-      font-size: 0.6875rem;
+      font-size: 0.6875rem; /* 11px on mobile for legibility */
     }
   }
 
@@ -328,6 +357,35 @@ h1, h2, h3, h4, h5, h6 {
   .no-spinner::-webkit-outer-spin-button,
   .no-spinner::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .no-spinner { -moz-appearance: textfield; }
+
+  /* ── Layout utilities ────────────────────────────────────────────────── */
+  .container {
+    @apply mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8;
+  }
+
+  .grid-auto-fit {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .flex-center { display: flex; align-items: center; justify-content: center; }
+  .flex-between { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
+  .flex-gap-2 { display: flex; align-items: center; gap: var(--space-2); }
+  .flex-gap-3 { display: flex; align-items: center; gap: var(--space-3); }
+  .flex-gap-4 { display: flex; align-items: center; gap: var(--space-4); }
+
+  /* Section spacing */
+  .section { @apply py-10 sm:py-14 lg:py-16; }
+  .section-sm { @apply py-6 sm:py-8 lg:py-10; }
+
+  /* Text utilities */
+  .text-balance { text-wrap: balance; }
+  .text-pretty { text-wrap: pretty; }
+
+  /* Divider */
+  .divider { height: 1px; background: var(--line); border: none; }
+  .divider-grid { height: 1px; background: var(--grid); border: none; }
 }
 
 @supports (scrollbar-color: auto) {

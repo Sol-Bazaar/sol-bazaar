@@ -11,6 +11,7 @@ import { ProductCard, ProductCardSkeleton } from '@/components/ProductCard';
 import { CountrySwitcher } from '@/components/CountrySwitcher';
 import { HeroSearch } from '@/components/HeroSearch';
 import { SolanaFlow } from '@/components/SolanaFlow';
+import { ArrowRight, CheckCircle2, Shield, Zap, Globe, Sparkles } from 'lucide-react';
 
 export const dynamic = 'force-dynamic'; // geo-personalised; never prerender
 
@@ -33,23 +34,26 @@ export default async function LandingPage() {
 
       <main id="main">
         {/* ── Hero ──────────────────────────────────────────────────────── */}
-        <section className="relative border-b border-[var(--grid)]">
+        <section className="relative border-b border-[var(--grid)] py-14 sm:py-18 lg:py-22">
           {/*
             Grid field behind the hero. `--cell` keeps it aligned with the card
             gutters below, so the whole page reads as one drawing rather than a
             hero sitting on top of a grid.
           */}
-          <div aria-hidden className="grid-field pointer-events-none absolute inset-0 opacity-70" />
+          <div aria-hidden className="grid-field pointer-events-none absolute inset-0 opacity-50" />
 
-          <div className="relative mx-auto max-w-[1600px] px-4 pb-14 pt-16 sm:px-6 lg:px-8 lg:pt-24">
+          <div className="relative mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-3xl text-center">
               {/* Personalised for the visitor's resolved market. Rendered
                   server-side, so no flash of a generic or wrong-region hero. */}
-              <span className="badge mx-auto mb-8 gap-2 py-1.5">
+              <div className="inline-flex items-center gap-2 py-1.5 px-3 rounded-full border border-[var(--grid)] bg-[color-mix(in_srgb,var(--surface)_70%,transparent)] mb-8">
                 <span className="h-1.5 w-1.5 rounded-full bg-[var(--ok)]" />
-                {countryName}
-                {solPrice ? <span className="text-[var(--faint)]">· SOL {formatUsd(solPrice.usd)}</span> : null}
-              </span>
+                <Globe className="h-3.5 w-3.5 text-[var(--ok)]" />
+                <span className="font-mono text-[11px] font-medium">{countryName}</span>
+                {solPrice ? (
+                  <span className="text-[var(--faint)] font-mono text-[11px]">· SOL {formatUsd(solPrice.usd)}</span>
+                ) : null}
+              </div>
 
               <h1 className="t-display text-balance">{brand.heroHeadline}</h1>
 
@@ -60,6 +64,7 @@ export default async function LandingPage() {
               <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Link href="/products" className="btn btn-primary btn-lg w-full sm:w-auto">
                   Browse all gift cards
+                  <ArrowRight className="h-4 w-4 ml-1" />
                 </Link>
                 <Link href="#how-it-works" className="btn btn-ghost btn-lg w-full sm:w-auto">
                   How it works
@@ -81,17 +86,20 @@ export default async function LandingPage() {
             {/* ── Trust row ──────────────────────────────────────────────── */}
             <div className="mx-auto mt-16 grid max-w-4xl grid-cols-2 border border-[var(--grid)] sm:grid-cols-4">
               {[
-                { k: 'Instant', v: 'Code by email', d: 'Right after confirm' },
-                { k: 'Non-custodial', v: 'Direct pay', d: 'Straight to us' },
-                { k: 'On-chain', v: 'Solana', d: 'Fully verifiable' },
-                { k: 'Global', v: '190+', d: 'Countries served' },
+                { icon: Zap, k: 'Instant', v: 'Code by email', d: 'Right after confirm' },
+                { icon: Shield, k: 'Non-custodial', v: 'Direct pay', d: 'Straight to you' },
+                { icon: CheckCircle2, k: 'On-chain', v: 'Solana', d: 'Fully verifiable' },
+                { icon: Globe, k: 'Global', v: '190+', d: 'Countries served' },
               ].map((s, i) => (
                 <div
                   key={s.k}
-                  className={`px-4 py-4 ${i % 2 === 0 ? 'border-r border-[var(--grid)]' : ''} ${
+                  className={`px-4 py-4 flex flex-col items-center text-center ${i % 2 === 0 ? 'border-r border-[var(--grid)]' : ''} ${
                     i < 2 ? 'border-b border-[var(--grid)] sm:border-b-0' : ''
                   } ${i === 1 ? 'sm:border-r' : ''} ${i === 2 ? 'sm:border-r' : ''}`}
                 >
+                  <div className="flex items-center justify-center h-10 w-10 rounded-none border border-[var(--grid)] bg-[color-mix(in_srgb,var(--surface)_50%,transparent)] mb-3">
+                    <s.icon className="h-5 w-5" style={{ color: 'var(--accent)' }} />
+                  </div>
                   <div className="t-label">{s.k}</div>
                   <div className="mt-1.5 text-[14px] font-medium">{s.v}</div>
                   <div className="mt-0.5 text-[11px] text-[var(--faint)]">{s.d}</div>
@@ -103,12 +111,19 @@ export default async function LandingPage() {
 
         {/* ── Categories ─────────────────────────────────────────────────── */}
         {categories.length ? (
-          <section className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
-            <SectionHead
-              eyebrow="Categories"
-              title="What are you buying for?"
-              action={{ href: '/products', label: 'See everything' }}
-            />
+          <section className="container section">
+            <div className="section-head flex-wrap">
+              <div>
+                <div className="t-label">Categories</div>
+                <h2 className="t-h2 mt-2 text-balance">What are you buying for?</h2>
+              </div>
+              <Link
+                href="/products"
+                className="t-small shrink-0 text-[var(--muted)] transition-colors hover:text-[var(--text)]"
+              >
+                See everything →
+              </Link>
+            </div>
             <div className="mt-6 flex flex-wrap gap-2.5">
               {categories.map((c) => (
                 <Link
@@ -128,13 +143,22 @@ export default async function LandingPage() {
         ) : null}
 
         {/* ── Featured products ──────────────────────────────────────────── */}
-        <section className="mx-auto max-w-[1600px] px-4 pt-16 sm:px-6 lg:px-8">
-          <SectionHead
-            eyebrow="Popular right now"
-            title="Top gift cards"
-            desc={`Available in ${countryName}. Prices include live crypto conversion.`}
-            action={{ href: '/products?sort=popular', label: 'View all' }}
-          />
+        <section className="container section">
+          <div className="section-head flex-wrap">
+            <div>
+              <div className="t-label">Popular right now</div>
+              <h2 className="t-h2 mt-2 text-balance">Top gift cards</h2>
+              <p className="mt-2 max-w-xl text-[13.5px] leading-relaxed text-[var(--muted)]">
+                Available in {countryName}. Prices include live crypto conversion.
+              </p>
+            </div>
+            <Link
+              href="/products?sort=popular"
+              className="t-small shrink-0 text-[var(--muted)] transition-colors hover:text-[var(--text)]"
+            >
+              View all →
+            </Link>
+          </div>
 
           <Suspense
             fallback={
@@ -163,37 +187,41 @@ export default async function LandingPage() {
         </section>
 
         {/* ── How it works ──────────────────────────────────────────────── */}
-        <section id="how-it-works" className="mx-auto max-w-[1600px] scroll-mt-20 px-4 pt-20 sm:px-6 lg:px-8">
-          <SectionHead
-            eyebrow="How it works"
-            title="Three steps. About 40 seconds."
-            desc="No bank details, no card forms, no account to create. The whole flow happens on-chain."
-          />
+        <section id="how-it-works" className="container section">
+          <div className="section-head flex-wrap">
+            <div>
+              <div className="t-label">How it works</div>
+              <h2 className="t-h2 mt-2 text-balance">Three steps. About 40 seconds.</h2>
+              <p className="mt-2 max-w-xl text-[13.5px] leading-relaxed text-[var(--muted)]">
+                No bank details, no card forms, no account to create. The whole flow happens on-chain.
+              </p>
+            </div>
+          </div>
           <SolanaFlow />
 
           <div className="mt-8 grid gap-3.5 sm:grid-cols-3">
             {[
               {
-                icon: '🔒',
+                icon: Shield,
                 title: 'Codes never touch our database in plain text',
                 body: 'Redeemable codes are AES-256-GCM encrypted at rest with a key held outside the database. Even a full database dump yields nothing redeemable.',
               },
               {
-                icon: '🎯',
+                icon: Globe,
                 title: 'A unique address for every order',
                 body: 'Each order gets its own HD-derived Solana address, so incoming payments are attributed exactly — no memo matching, no guessing.',
               },
               {
-                icon: '⚡',
+                icon: Zap,
                 title: 'Issued only after the chain confirms',
                 body: 'Fulfilment is blocked until your payment reaches the required confirmation depth. We never sell a gift card against an unconfirmed deposit.',
               },
             ].map((f) => (
               <div key={f.title} className="card p-5">
-                <div className="text-[22px]" aria-hidden>
-                  {f.icon}
+                <div className="flex items-center justify-center h-10 w-10 rounded-none border border-[var(--grid)] bg-[color-mix(in_srgb,var(--surface)_50%,transparent)] mb-4">
+                  <f.icon className="h-5 w-5" style={{ color: 'var(--accent)' }} />
                 </div>
-                <h3 className="mt-3 text-[14.5px] font-bold leading-snug">{f.title}</h3>
+                <h3 className="text-[14.5px] font-bold leading-snug">{f.title}</h3>
                 <p className="mt-2 text-[13px] leading-relaxed text-[var(--muted)]">{f.body}</p>
               </div>
             ))}
@@ -201,12 +229,12 @@ export default async function LandingPage() {
         </section>
 
         {/* ── Payment rail ──────────────────────────────────────────────── */}
-        <section className="mx-auto max-w-[1600px] px-4 pt-20 sm:px-6 lg:px-8">
+        <section className="container section">
           <div className="card overflow-hidden">
             <div className="grid gap-8 p-7 sm:p-10 lg:grid-cols-2 lg:items-center">
               <div>
                 <span className="badge gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--ok)]" aria-hidden />
+                  <Sparkles className="h-3 w-3" style={{ color: 'var(--ok)' }} />
                   Live prices
                 </span>
                 <h2 className="mt-4 text-balance text-[26px] font-medium leading-tight tracking-[-0.02em] sm:text-[32px]">
@@ -223,9 +251,7 @@ export default async function LandingPage() {
                     'Every order page shows the real on-chain transaction',
                   ].map((t) => (
                     <li key={t} className="flex items-start gap-2.5">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0" aria-hidden>
-                        <path d="m5 13 4 4L19 7" />
-                      </svg>
+                      <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" style={{ color: 'var(--ok)' }} />
                       <span className="text-[var(--muted)]">{t}</span>
                     </li>
                   ))}
@@ -258,16 +284,19 @@ export default async function LandingPage() {
         </section>
 
         {/* ── FAQ ───────────────────────────────────────────────────────── */}
-        <section className="mx-auto max-w-3xl px-4 pt-20 sm:px-6 lg:px-8">
-          <SectionHead eyebrow="Questions" title="Frequently asked" />
+        <section className="container section max-w-3xl">
+          <div className="section-head flex-wrap">
+            <div>
+              <div className="t-label">Questions</div>
+              <h2 className="t-h2 mt-2 text-balance">Frequently asked</h2>
+            </div>
+          </div>
           <div className="mt-6 space-y-2.5">
             {LANDING_FAQ.map((f) => (
               <details key={f.q} className="card group px-5 py-4 [&_summary::-webkit-details-marker]:hidden">
                 <summary className="flex cursor-pointer items-center justify-between gap-4 text-[14.5px] font-semibold">
                   {f.q}
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="shrink-0 transition-transform group-open:rotate-45" aria-hidden>
-                    <path d="M12 5v14M5 12h14" />
-                  </svg>
+                  <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180 text-[var(--muted)]" />
                 </summary>
                 <p className="mt-3 text-[13.5px] leading-relaxed text-[var(--muted)]">{f.a}</p>
               </details>
@@ -282,12 +311,7 @@ export default async function LandingPage() {
         </section>
 
         {/* ── CTA ───────────────────────────────────────────────────────── */}
-        {/*
-          A bordered panel rather than a gradient slab. The gradient was the
-          loudest element on a page that is supposed to be about the products,
-          and with a white accent it rendered as a white box with white text.
-        */}
-        <section className="mx-auto max-w-[1600px] px-4 pt-20 sm:px-6 lg:px-8">
+        <section className="container section">
           <div className="rounded-none border border-[var(--line)] bg-[var(--surface)] px-7 py-14 text-center sm:px-12">
             <h2 className="t-h1 text-balance">Ready to send some gift cards?</h2>
             <p className="mx-auto mt-3 max-w-lg text-[14.5px] leading-relaxed text-[var(--muted)]">
@@ -297,6 +321,7 @@ export default async function LandingPage() {
             <div className="mt-7 flex flex-wrap justify-center gap-3">
               <Link href="/products" className="btn btn-primary btn-lg">
                 Shop gift cards
+                <ArrowRight className="h-4 w-4 ml-1" />
               </Link>
               <Link href="#how-it-works" className="btn btn-ghost btn-lg">
                 How it works
@@ -308,41 +333,6 @@ export default async function LandingPage() {
 
       <SiteFooter />
     </>
-  );
-}
-
-function SectionHead({
-  eyebrow,
-  title,
-  desc,
-  action,
-}: {
-  eyebrow: string;
-  title: string;
-  desc?: string;
-  action?: { href: string; label: string };
-}) {
-  /*
-   * Eyebrow stays muted rather than accented. With the chrome colourless, an
-   * accented eyebrow would be the only thing competing with the product grid for
-   * attention on a page whose entire job is showing products.
-   */
-  return (
-    <div className="section-head flex-wrap">
-      <div>
-        <div className="t-label">{eyebrow}</div>
-        <h2 className="t-h2 mt-2 text-balance">{title}</h2>
-        {desc ? <p className="mt-2 max-w-xl text-[13.5px] leading-relaxed text-[var(--muted)]">{desc}</p> : null}
-      </div>
-      {action ? (
-        <Link
-          href={action.href}
-          className="t-small shrink-0 text-[var(--muted)] transition-colors hover:text-[var(--text)]"
-        >
-          {action.label} →
-        </Link>
-      ) : null}
-    </div>
   );
 }
 

@@ -21,6 +21,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Menu, X, ChevronRight } from 'lucide-react';
 
 export interface MobileNavLink {
   href: string;
@@ -31,8 +32,6 @@ export default function MobileNav({
   links,
   faqHref,
 }: {
-  /* `readonly` because the caller declares MAIN_LINKS with `as const`, which
-   * preserves the literal hrefs for the desktop nav too. */
   links: readonly MobileNavLink[];
   faqHref: string;
 }) {
@@ -76,32 +75,13 @@ export default function MobileNav({
         aria-expanded={open}
         aria-controls="mobile-nav-panel"
         aria-label={open ? 'Close menu' : 'Open menu'}
-        /* 40px tall on mobile rather than 36: see the tap-target note below. */
         className="btn btn-ghost h-10 w-10 !px-0 lg:hidden"
       >
-        <svg
-          width="17"
-          height="17"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          aria-hidden
-        >
-          {open ? (
-            <>
-              <path d="M5 5l14 14" />
-              <path d="M19 5L5 19" />
-            </>
-          ) : (
-            <>
-              <path d="M3 6h18" />
-              <path d="M3 12h18" />
-              <path d="M3 18h18" />
-            </>
-          )}
-        </svg>
+        {open ? (
+          <X className="h-5 w-5" />
+        ) : (
+          <Menu className="h-5 w-5" />
+        )}
       </button>
 
       {open && (
@@ -111,7 +91,7 @@ export default function MobileNav({
             tabIndex={-1}
             aria-hidden
             onClick={close}
-            className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+            className="fixed inset-0 z-40 bg-black/60 lg:hidden animate-fade-in"
           />
           <div
             id="mobile-nav-panel"
@@ -120,17 +100,18 @@ export default function MobileNav({
             role="dialog"
             aria-modal="true"
             aria-label="Menu"
-            className="fixed inset-x-0 top-14 z-50 max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-b border-[var(--grid)] bg-[var(--bg)] lg:hidden"
+            className="fixed inset-x-0 top-14 z-50 max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-b border-[var(--grid)] bg-[var(--bg)] lg:hidden animate-slide-up"
           >
             <nav className="px-4 py-3" aria-label="Mobile">
-              {/* 44px rows: the smallest reliably tappable target on a phone. */}
               {links.map((l) => (
                 <DrawerLink key={l.href} href={l.href} onClick={close}>
                   {l.label}
+                  <ChevronRight className="h-4 w-4 ml-auto text-[var(--muted)] shrink-0" />
                 </DrawerLink>
               ))}
               <DrawerLink href={faqHref} onClick={close}>
                 FAQ
+                <ChevronRight className="h-4 w-4 ml-auto text-[var(--muted)] shrink-0" />
               </DrawerLink>
             </nav>
           </div>

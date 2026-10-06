@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { CatalogProduct } from '@/lib/catalog';
 import { formatUsd } from '@solbazaar/core/client';
 import { BrandLogo } from './BrandLogo';
+import { ChevronRight, Star, Tag, CircleDollarSign } from 'lucide-react';
 
 interface Props {
   product: CatalogProduct;
@@ -43,11 +44,6 @@ export function ProductCard({ product, compact = false, priority = false }: Prop
           ) : null}
 
           <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            {/*
-              Local currency when we have it, USD otherwise. `priceFromUsd`
-              stays the settlement value — this is what the visitor reads, not
-              what they are charged.
-            */}
             <span className="t-num text-[14px] font-medium tabular-nums">
               {product.displayPriceFrom ?? (product.priceFromUsd > 0 ? formatUsd(product.priceFromUsd) : '—')}
             </span>
@@ -56,7 +52,7 @@ export function ProductCard({ product, compact = false, priority = false }: Prop
             ) : null}
             {product.rating ? (
               <span className="t-num inline-flex items-center gap-1 text-[11px] text-[var(--muted)]">
-                <span aria-hidden style={{ color: 'var(--warn)' }}>★</span>
+                <Star className="h-3 w-3 fill-current" style={{ color: 'var(--warn)' }} />
                 {product.rating.toFixed(1)}
               </span>
             ) : null}
@@ -85,27 +81,27 @@ export function ProductCard({ product, compact = false, priority = false }: Prop
       ) : null}
 
       <div className="mt-auto flex items-center justify-between gap-2 border-t border-[var(--grid)] px-4 py-1.5">
-        <span className="t-label truncate">{product.category.name}</span>
+        <span className="t-label truncate">
+          <Tag className="h-3 w-3 inline mr-1" style={{ verticalAlign: 'middle' }} />
+          {product.category.name}
+        </span>
         {soldOut ? (
           <span className="t-label shrink-0 text-[var(--faint)]">Sold out</span>
         ) : product.displayCurrency && product.displayCurrency !== 'USD' ? (
-          /*
-           * Disclose the conversion. An unlabelled converted price reads like an
-           * FX fee we pocketed; the marker costs one glyph and removes the doubt.
-           */
           <span className="t-label shrink-0" title={`Converted from USD at ${product.displayRate}`}>
             ≈ USD
           </span>
         ) : (
-          <span className="t-label shrink-0 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
-            Buy →
+          <span className="t-label shrink-0 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 flex items-center gap-1">
+            Buy
+            <ChevronRight className="h-3 w-3" />
           </span>
         )}
       </div>
 
       {soldOut ? (
         <div className="absolute inset-0 grid place-items-center bg-[color-mix(in_srgb,var(--bg)_78%,transparent)]">
-          <span className="badge">Out of stock</span>
+          <span className="badge px-3 py-1.5">Out of stock</span>
         </div>
       ) : null}
     </Link>
